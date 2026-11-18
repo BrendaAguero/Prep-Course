@@ -1,0 +1,68 @@
+# Catálogo del banco de sonidos: una acción por línea.
+# Formato:  accion | búsqueda 1 ; búsqueda 2 ; búsqueda 3   (en inglés, de más a menos precisa)
+# Se usa con: python scripts/freesound_descargar.py --catalogo scripts/catalogo_sonidos.txt
+
+# HUEVOS_Y_BATIDOS
+cascar-huevo | egg crack ; cracking egg ; egg break bowl
+batir-mano | whisking ; whisk bowl ; beating eggs
+batidora | hand mixer ; electric mixer ; whipping cream
+mezclar-espatula | mixing batter ; spatula bowl ; scraping bowl
+remover-cuchara | stirring spoon ; stirring bowl ; stir pot
+
+# CORTAR_Y_PREPARAR
+cortar-tabla | chopping board ; knife chopping ; cutting board knife
+picar-verdura | chopping vegetables ; cutting onion ; chopping carrot
+cortar-fruta | cutting apple ; slicing fruit ; cutting strawberry
+pelar | peeling vegetable ; peeler ; peeling potato
+rallar | grater ; grating cheese ; grating
+amasar | kneading dough ; dough ; bread dough
+rodillo | rolling pin ; rolling dough
+machacar | mortar pestle ; mashing ; crushing garlic
+
+# SECOS
+tamizar | sieve ; sifting flour ; sift
+verter-seco | pouring sugar ; pouring rice ; pouring flour
+espolvorear | sprinkle sugar ; salt shaker ; sprinkling
+bolsa-seca | flour bag ; paper bag kitchen ; rustling bag
+
+# LIQUIDOS
+verter-liquido | pouring water ; pouring milk ; pour liquid
+verter-aceite | pouring oil ; oil pan
+verter-espeso | pouring syrup ; honey ; viscous pour
+grifo | kitchen faucet ; tap water sink ; filling glass water
+gotear | dripping water ; drip ; drops
+
+# COCCION
+chisporroteo | sizzle pan ; frying pan sizzle ; butter sizzling
+freir-aceite | deep frying ; frying oil ; frying
+hervir | boiling water ; simmering pot ; boiling
+agua-sarten | water hot pan ; water sizzle ; steam sizzle
+tapa | pot lid ; glass lid ; lid off
+voltear | spatula flip ; pancake flip ; spatula
+olla-sarten | pan on stove ; frying pan ; pot stove
+encender-fuego | gas stove ignition ; stove click ; gas burner
+
+# HORNO_Y_APARATOS
+horno-puerta | oven door ; oven open close
+horno-ambiente | oven fan ; oven hum
+microondas | microwave ; microwave beep
+tostadora | toaster ; toaster pop
+licuadora | blender ; food processor
+nevera | fridge door ; refrigerator open close ; freezer door
+temporizador | kitchen timer ; timer ding ; timer ticking
+hervidor | kettle ; electric kettle
+
+# UTENSILIOS_Y_SERVICIO
+plato | plate set down ; ceramic plate ; plate table
+cubiertos | cutlery ; spoon clink ; fork plate
+vaso | glass clink ; glass table ; pouring drink glass
+bol-mesa | bowl on table ; glass bowl ; ceramic bowl
+cajon | kitchen drawer ; drawer open close
+frasco | jar open ; jar lid ; unscrew lid
+envoltorio | plastic wrap ; foil ; wrapper
+papel-cocina | paper towel ; tearing paper towel
+
+# AMBIENTE
+cocina-ambiente | kitchen ambience ; kitchen room tone ; kitchen background
+lluvia-ventana | rain window ; soft rain
+pajaros | birds morning ; birdsong distant

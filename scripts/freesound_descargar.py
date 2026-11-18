@@ -1,4 +1,4 @@
-"""Descarga sonidos CC0 de Freesound a la carpeta `sounds/` del proyecto.
+"""Descarga sonidos de Freesound (CC0 y CC BY) a la carpeta `sounds/` del proyecto.
 
 - Usa solo las URLs "preview-hq-mp3" de la API v2 (nunca el endpoint /download/, que exige OAuth2).
 - Guarda cada MP3 directamente en `sounds/` (la crea si no existe), con nombre
@@ -16,6 +16,8 @@ Uso:
     python scripts/freesound_descargar.py --ids 336612 435000
     python scripts/freesound_descargar.py --pedido sounds/pedido.txt   # una búsqueda o ID por línea
     python scripts/freesound_descargar.py --buscar "kitchen ambience" --licencias cc0      # solo CC0
+    python scripts/freesound_descargar.py --catalogo scripts/catalogo_sonidos.txt --cantidad 3
+        # banco por acciones: cada línea "accion | búsqueda 1 ; búsqueda 2 ; …" → sounds/<accion>/
 
 Clave: variable de entorno FREESOUND_TOKEN. Si no existe, se envía la petición sin cabecera
 (en el entorno de Claude Code el proxy añade la clave guardada).
@@ -61,6 +63,10 @@ def tipo_licencia(url: str) -> str | None:
     return None
 
 
+def permitida(lic: str | None, licencias: list[str]) -> bool:
+    return lic is not None and ((lic == "cc0" and "cc0" in licencias) or (lic.startswith("by") and "by" in licencias))
+
+
 NOMBRE_LICENCIA = {"cc0": "CC0 1.0", "by4": "CC BY 4.0", "by3": "CC BY 3.0"}
 USER_AGENT = "FuwaFuwaKitchen-SoundBank/1.0 (+https://freesound.org/docs/api/)"
 TAM_MINIMO = 2048  # bytes; menos que esto no es un audio útil
@@ -78,7 +84,16 @@ def cabeceras() -> dict[str, str]:
     return h
 
 
+_ultima_api = 0.0
+
+
 def pedir(url: str, binario: bool = False, intentos: int = 4):
+    global _ultima_api
+    if url.startswith(API):  # la API permite 60 peticiones/minuto: como mucho una cada 1,1 s
+        pausa = 1.1 - (time.monotonic() - _ultima_api)
+        if pausa > 0:
+            time.sleep(pausa)
+        _ultima_api = time.monotonic()
     espera = 2.0
     for intento in range(1, intentos + 1):
         try:
@@ -134,7 +149,7 @@ def ya_registrados() -> set[str]:
         return {fila["id"] for fila in csv.DictReader(f)}
 
 
-CAMPOS_CSV = ["archivo", "id", "titulo", "autor", "licencia", "licencia_url", "atribucion_obligatoria",
+CAMPOS_CSV = ["archivo", "accion", "id", "titulo", "autor", "licencia", "licencia_url", "atribucion_obligatoria",
               "atribucion", "duracion_s", "url", "consulta"]
 
 
@@ -169,16 +184,19 @@ def registrar(fila: dict) -> None:
         w.writerow(fila)
 
 
-def descargar(s: dict, consulta: str, licencias: list[str]) -> str:
+def descargar(s: dict, consulta: str, licencias: list[str], accion: str = "") -> str:
     """Descarga un sonido; devuelve 'ok', 'existe' o el motivo por el que se salta."""
     sid = str(s["id"])
     lic = tipo_licencia(s.get("license", ""))
-    if lic is None or (lic == "cc0" and "cc0" not in licencias) or (lic.startswith("by") and "by" not in licencias):
+    if not permitida(lic, licencias):
         return f"licencia no permitida ({s.get('license')})"
     url = (s.get("previews") or {}).get("preview-hq-mp3")
     if not url:
         return "sin preview-hq-mp3"
     nombre = f"{slug(s['name'])}__{sid}__{slug(s['username'], 24)}__{lic}.mp3"
+    if accion:
+        (CARPETA / accion).mkdir(parents=True, exist_ok=True)
+        nombre = f"{accion}/{nombre}"
     destino = CARPETA / nombre
     if destino.exists() and destino.stat().st_size >= TAM_MINIMO:
         return "existe"
@@ -193,7 +211,7 @@ def descargar(s: dict, consulta: str, licencias: list[str]) -> str:
         return "error al guardar en disco"
     pagina = s.get("url") or f"https://freesound.org/s/{sid}/"
     registrar({
-        "archivo": nombre, "id": sid, "titulo": s["name"], "autor": s["username"],
+        "archivo": nombre, "accion": accion, "id": sid, "titulo": s["name"], "autor": s["username"],
         "licencia": NOMBRE_LICENCIA[lic], "licencia_url": s["license"],
         "atribucion_obligatoria": "si" if lic.startswith("by") else "no",
         "atribucion": atribucion(s["name"], s["username"], pagina, lic, s["license"]),
@@ -207,7 +225,8 @@ def main() -> int:
     ap.add_argument("--buscar", action="append", default=[], help="consulta de búsqueda (repetible)")
     ap.add_argument("--ids", nargs="*", default=[], help="IDs de Freesound")
     ap.add_argument("--pedido", help="archivo con una consulta o un ID por línea (# = comentario)")
-    ap.add_argument("--cantidad", type=int, default=3, help="sonidos por consulta")
+    ap.add_argument("--catalogo", help="archivo 'accion | búsqueda ; búsqueda …' → sounds/<accion>/")
+    ap.add_argument("--cantidad", type=int, default=3, help="sonidos por consulta (o por acción con --catalogo)")
     ap.add_argument("--dur-min", type=float, default=0.7)
     ap.add_argument("--dur-max", type=float, default=30)
     ap.add_argument("--licencias", default="cc0,by", help="licencias aceptadas: cc0, by o cc0,by (por defecto)")
@@ -222,32 +241,56 @@ def main() -> int:
             linea = linea.split("#", 1)[0].strip()
             if linea:
                 (ids if linea.isdigit() else consultas).append(linea)
-    if not consultas and not ids:
-        ap.error("indica --buscar, --ids o --pedido")
+    catalogo: list[tuple[str, list[str]]] = []
+    if a.catalogo:
+        for linea in Path(a.catalogo).read_text(encoding="utf-8").splitlines():
+            linea = linea.split("#", 1)[0].strip()
+            if "|" in linea:
+                accion, busquedas = linea.split("|", 1)
+                catalogo.append((slug(accion, 40), [b.strip() for b in busquedas.split(";") if b.strip()]))
+    if not consultas and not ids and not catalogo:
+        ap.error("indica --buscar, --ids, --pedido o --catalogo")
 
     CARPETA.mkdir(parents=True, exist_ok=True)
     vistos = ya_registrados()
     cuenta = {"ok": 0, "existe": 0, "saltado": 0, "error": 0}
 
     try:
-        trabajo: list[tuple[dict, str]] = []
+        trabajo: list[tuple[dict, str, str]] = []
         for c in consultas:
             for s in buscar(c, a.cantidad, a.dur_min, a.dur_max, licencias):
-                trabajo.append((s, c))
+                trabajo.append((s, c, ""))
         for sid in ids:
-            trabajo.append((info(sid), f"id:{sid}"))
+            trabajo.append((info(sid), f"id:{sid}", ""))
+        # Catálogo: por cada acción se prueban sus búsquedas en orden hasta reunir --cantidad sonidos.
+        elegidos: set[str] = set(vistos)
+        for accion, busquedas in catalogo:
+            reunidos = 0
+            for c in busquedas:
+                if reunidos >= a.cantidad:
+                    break
+                for s in buscar(c, a.cantidad * 3, a.dur_min, a.dur_max, licencias):
+                    sid = str(s["id"])
+                    if sid in elegidos or not permitida(tipo_licencia(s.get("license", "")), licencias):
+                        continue
+                    elegidos.add(sid)
+                    trabajo.append((s, c, accion))
+                    reunidos += 1
+                    if reunidos >= a.cantidad:
+                        break
+            print(f"· {accion}: {reunidos} sonidos")
     except Bloqueado as e:
         print(f"✗ Freesound rechaza las conexiones desde esta máquina ({e}).", file=sys.stderr)
         print("  No es un fallo del código: hay que ejecutar este script desde otra red.", file=sys.stderr)
         return 2
 
-    for s, c in trabajo:
+    for s, c, accion in trabajo:
         sid = str(s["id"])
         if sid in vistos:
             cuenta["existe"] += 1
             continue
         try:
-            r = descargar(s, c, licencias)
+            r = descargar(s, c, licencias, accion)
         except Bloqueado as e:
             print(f"✗ {sid}: bloqueado ({e})")
             cuenta["error"] += 1

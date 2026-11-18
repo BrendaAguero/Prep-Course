@@ -1,0 +1,95 @@
+# Descarga el banco de sonidos por acciones (scripts/catalogo_sonidos.txt) desde Freesound.
+# - Solo manual (workflow_dispatch). No hace commits.
+# - Usa scripts/freesound_descargar.py: solo "preview-hq-mp3", licencias CC0 y/o CC BY,
+#   créditos en sounds/creditos.csv y sounds/CREDITOS.txt.
+# - La clave se lee del secreto FREESOUND_TOKEN y nunca se imprime.
+# - El resultado (sounds/<accion>/…) se publica como artefacto "banco-sonidos" (7 días).
+# - Si Freesound responde 403, se detiene.
+name: Descargar banco de sonidos
+
+on:
+  workflow_dispatch:
+    inputs:
+      cantidad:
+        description: "Sonidos por acción (1-8)"
+        required: true
+        default: "3"
+      licencias:
+        description: "Licencias aceptadas"
+        required: true
+        default: "cc0,by"
+        type: choice
+        options:
+          - "cc0,by"
+          - "cc0"
+
+permissions:
+  contents: read
+
+jobs:
+  banco:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Obtener el código del proyecto
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Comprobar parámetros
+        env:
+          FREESOUND_TOKEN: ${{ secrets.FREESOUND_TOKEN }}
+          CANTIDAD: ${{ inputs.cantidad }}
+        run: |
+          if [ -z "$FREESOUND_TOKEN" ]; then
+            echo "::error::Falta el secreto FREESOUND_TOKEN."
+            exit 1
+          fi
+          if ! [[ "$CANTIDAD" =~ ^[1-8]$ ]]; then
+            echo "::error::La cantidad debe ser un número del 1 al 8."
+            exit 1
+          fi
+
+      - name: Descargar el banco
+        env:
+          FREESOUND_TOKEN: ${{ secrets.FREESOUND_TOKEN }}
+          CANTIDAD: ${{ inputs.cantidad }}
+          LICENCIAS: ${{ inputs.licencias }}
+        run: |
+          set +e
+          python scripts/freesound_descargar.py --catalogo scripts/catalogo_sonidos.txt \
+            --cantidad "$CANTIDAD" --licencias "$LICENCIAS" 2>&1 | tee descarga.log
+          estado=${PIPESTATUS[0]}
+          set -e
+          if grep -q "403" descarga.log; then
+            echo "::error::Freesound devolvió 403. Descarga detenida."
+            exit 1
+          fi
+          # Errores sueltos (un enlace que falla) no detienen el banco; se informan abajo.
+          echo "Código del script: $estado"
+
+      - name: Resumen
+        run: |
+          total=$(find sounds -name '*.mp3' -size +2k | wc -l)
+          echo "MP3 válidos: $total"
+          if [ "$total" -eq 0 ]; then
+            echo "::error::No se descargó ningún sonido."
+            exit 1
+          fi
+          for d in sounds/*/; do printf '%3s  %s\n' "$(ls "$d"*.mp3 2>/dev/null | wc -l)" "$(basename "$d")"; done
+          du -sh sounds
+          {
+            echo "### Banco de sonidos"
+            echo "- MP3 válidos: **$total**"
+            echo "- Tamaño: $(du -sh sounds | cut -f1)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar el banco como artefacto (sin commits)
+        uses: actions/upload-artifact@v4
+        with:
+          name: banco-sonidos
+          path: sounds/
+          retention-days: 7
