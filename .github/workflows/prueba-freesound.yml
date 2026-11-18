@@ -1,0 +1,91 @@
+# Prueba controlada: ¿puede GitHub Actions conectarse a Freesound y descargar un MP3 real?
+# - Solo se ejecuta a mano (workflow_dispatch).
+# - Descarga UN sonido con scripts/freesound_descargar.py usando solo "preview-hq-mp3".
+# - Licencias aceptadas: CC0 y CC BY. La clave se lee del secreto FREESOUND_TOKEN y nunca se imprime.
+# - No hace commits: el MP3 y sus créditos se guardan en sounds/ dentro de la máquina de GitHub
+#   y se publican como "artefacto" descargable de la ejecución (7 días).
+# - Si Freesound responde 403, la prueba se detiene y lo indica.
+name: Prueba de descarga de Freesound
+
+on:
+  workflow_dispatch:
+    inputs:
+      sound_id:
+        description: "ID del sonido de Freesound (por defecto: 336612, 'egg - crack 02', CC0)"
+        required: true
+        default: "336612"
+
+permissions:
+  contents: read
+
+jobs:
+  prueba:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Obtener el código del proyecto
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Comprobar parámetros
+        env:
+          FREESOUND_TOKEN: ${{ secrets.FREESOUND_TOKEN }}
+          SOUND_ID: ${{ inputs.sound_id }}
+        run: |
+          if [ -z "$FREESOUND_TOKEN" ]; then
+            echo "::error::Falta el secreto FREESOUND_TOKEN (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          if ! [[ "$SOUND_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::El ID del sonido debe ser un número."
+            exit 1
+          fi
+          echo "Clave presente (oculta). Sonido de prueba: $SOUND_ID"
+
+      - name: Descargar el sonido (preview-hq-mp3, CC0 o CC BY)
+        env:
+          FREESOUND_TOKEN: ${{ secrets.FREESOUND_TOKEN }}
+          SOUND_ID: ${{ inputs.sound_id }}
+        run: |
+          set +e
+          python scripts/freesound_descargar.py --ids "$SOUND_ID" --licencias cc0,by 2>&1 | tee descarga.log
+          estado=${PIPESTATUS[0]}
+          set -e
+          if grep -q "403" descarga.log; then
+            echo "::error::Freesound devolvió 403 a GitHub Actions. Prueba detenida."
+            exit 1
+          fi
+          if [ "$estado" -ne 0 ]; then
+            echo "::error::El script terminó con código $estado."
+            exit "$estado"
+          fi
+
+      - name: Verificar el archivo descargado
+        run: |
+          shopt -s nullglob
+          archivos=(sounds/*.mp3)
+          if [ ${#archivos[@]} -ne 1 ]; then
+            echo "::error::Se esperaba 1 MP3 en sounds/ y hay ${#archivos[@]} (¿licencia no permitida o fuera del filtro de duración?)."
+            exit 1
+          fi
+          tam=$(stat -c %s "${archivos[0]}")
+          echo "Archivo: ${archivos[0]} · ${tam} bytes"
+          file "${archivos[0]}"
+          if [ "$tam" -lt 2048 ]; then
+            echo "::error::El archivo está vacío o incompleto."
+            exit 1
+          fi
+          echo "--- Créditos y licencia ---"
+          cat sounds/CREDITOS.txt
+          cat sounds/creditos.csv
+
+      - name: Publicar el resultado como artefacto (sin commits)
+        uses: actions/upload-artifact@v4
+        with:
+          name: prueba-freesound-sonido
+          path: sounds/
+          retention-days: 7
