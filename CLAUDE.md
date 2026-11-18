@@ -35,3 +35,14 @@ npx remotion render AprendeAContar out/aprende-a-contar.mp4
   aparece en Studio como `Receta-<id>-<estilo>`.
 - Texto fuera de los 200 px superiores y 280 px inferiores (zonas que tapa la app).
 - Si hay fotos/videos reales del plato, usar `imagen` en vez del emoji.
+
+### Modo juego (`src/RecetaJuego/`)
+
+- Estilo "juego de cocina" para público adulto (no infantil): cocina ilustrada, HUD con
+  puntos y pasos, popups "¡PERFECTO!", pantalla de "¡Receta completada!".
+- Composición `Receta-<id>-juego`. Usa la misma voz de la receta.
+- Cada paso del JSON puede llevar `accion`: `machacar`, `agregar` (+ `mezclar: true`),
+  `mezclar`, `calentar`, `cocinar` (voltear), `servir`; `ingredientes` (emojis que
+  intervienen) y `color` (color de la mezcla). Sin `accion` se usa una animación genérica.
+- Música chiptune y efectos (ding, click, chisporroteo, fanfarria):
+  `.venv/bin/python scripts/generar_sfx_juego.py` → `public/audio/juego/`.

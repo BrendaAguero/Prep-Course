@@ -8,18 +8,75 @@
   "dificultad": "Fácil",
   "intro": "Hoy vamos a preparar panqueques de plátano y avena. ¡Son fáciles, rápidos y deliciosos!",
   "ingredientes": [
-    { "emoji": "🍌", "texto": "1 plátano maduro", "voz": "Un plátano maduro." },
-    { "emoji": "🥚", "texto": "2 huevos", "voz": "Dos huevos." },
-    { "emoji": "🥣", "texto": "½ taza de avena", "voz": "Media taza de avena." },
-    { "emoji": "🫙", "texto": "1 pizca de canela", "voz": "Una pizca de canela." },
-    { "emoji": "🍯", "texto": "Miel para servir", "voz": "Y miel para servir." }
+    {
+      "emoji": "🍌",
+      "texto": "1 plátano maduro",
+      "voz": "Un plátano maduro."
+    },
+    {
+      "emoji": "🥚",
+      "texto": "2 huevos",
+      "voz": "Dos huevos."
+    },
+    {
+      "emoji": "🥣",
+      "texto": "½ taza de avena",
+      "voz": "Media taza de avena."
+    },
+    {
+      "emoji": "🫙",
+      "texto": "1 pizca de canela",
+      "voz": "Una pizca de canela."
+    },
+    {
+      "emoji": "🍯",
+      "texto": "Miel para servir",
+      "voz": "Y miel para servir."
+    }
   ],
   "pasos": [
-    { "emoji": "🍌", "texto": "Machaca el plátano con un tenedor hasta hacer un puré." },
-    { "emoji": "🥚", "texto": "Agrega los huevos, la avena y la canela. Mezcla bien." },
-    { "emoji": "🍳", "texto": "Calienta un sartén a fuego medio con un poco de aceite.", "nota": "Con ayuda de un adulto" },
-    { "emoji": "🥄", "texto": "Pon cucharadas de mezcla y cocina dos minutos por cada lado." },
-    { "emoji": "🍯", "texto": "Sirve los panqueques con miel y tu fruta favorita." }
+    {
+      "emoji": "🍌",
+      "texto": "Machaca el plátano con un tenedor hasta hacer un puré.",
+      "accion": "machacar",
+      "ingredientes": [
+        "🍌"
+      ],
+      "color": "#F2D27C"
+    },
+    {
+      "emoji": "🥚",
+      "texto": "Agrega los huevos, la avena y la canela. Mezcla bien.",
+      "accion": "agregar",
+      "ingredientes": [
+        "🥚",
+        "🥚",
+        "🥣",
+        "🫙"
+      ],
+      "mezclar": true,
+      "color": "#E2B872"
+    },
+    {
+      "emoji": "🍳",
+      "texto": "Calienta un sartén a fuego medio con un poco de aceite.",
+      "nota": "Con ayuda de un adulto",
+      "accion": "calentar"
+    },
+    {
+      "emoji": "🥄",
+      "texto": "Pon cucharadas de mezcla y cocina dos minutos por cada lado.",
+      "accion": "cocinar"
+    },
+    {
+      "emoji": "🍯",
+      "texto": "Sirve los panqueques con miel y tu fruta favorita.",
+      "accion": "servir",
+      "ingredientes": [
+        "🍯",
+        "🍓"
+      ]
+    }
   ],
   "cierre": "¡Listo! Así de fácil. ¡Buen provecho!"
 }

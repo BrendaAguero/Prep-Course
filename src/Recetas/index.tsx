@@ -1,6 +1,8 @@
 import React from "react";
 import { Composition, Folder } from "remotion";
 import { VideoReceta, type VideoRecetaProps } from "./VideoReceta";
+import { VideoJuego, type VideoJuegoProps } from "../RecetaJuego/VideoJuego";
+import { tiemposJuego } from "../RecetaJuego/tiempos";
 import { calcularTiempos, FPS } from "./tiempos";
 import type { Receta } from "./tipos";
 import panqueques from "./recetas/panqueques.json";
@@ -30,5 +32,17 @@ export const RecetasCompositions: React.FC = () => (
         />
       )),
     )}
+    {RECETAS.map(({ receta, duraciones }) => (
+      <Composition
+        key={`${receta.id}-juego`}
+        id={`Receta-${receta.id}-juego`}
+        component={VideoJuego}
+        durationInFrames={tiemposJuego(receta, duraciones).total}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ receta, duraciones } satisfies VideoJuegoProps}
+      />
+    ))}
   </Folder>
 );
