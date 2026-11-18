@@ -1,8 +1,7 @@
 node_modules
-package-lock.json
-.temp
+dist
+.DS_Store
+.env
 
-# Eleventy
-_dist
-_cache
-/_src/localStyles
+# Ignore the output video from Git but not videos you import into src/.
+out
