@@ -56,10 +56,18 @@ for i, p in enumerate(PALABRAS, start=1):
     CLIPS[f"frase-{i}"] = FRASES[i - 1]
 
 
-async def tts(nombre: str, texto: str) -> None:
-    crudo = VOZ_DIR / f"{nombre}.raw.mp3"
-    final = VOZ_DIR / f"{nombre}.mp3"
-    await edge_tts.Communicate(texto, VOZ, rate="-8%", pitch="+10Hz").save(str(crudo))
+async def tts(
+    nombre: str,
+    texto: str,
+    carpeta: Path = VOZ_DIR,
+    voz: str = VOZ,
+    rate: str = "-8%",
+    pitch: str = "+10Hz",
+) -> None:
+    carpeta.mkdir(parents=True, exist_ok=True)
+    crudo = carpeta / f"{nombre}.raw.mp3"
+    final = carpeta / f"{nombre}.mp3"
+    await edge_tts.Communicate(texto, voz, rate=rate, pitch=pitch).save(str(crudo))
     # Recorta silencios al principio y al final para sincronizar con precisión.
     recorte = "silenceremove=start_periods=1:start_threshold=-45dB"
     subprocess.run(
