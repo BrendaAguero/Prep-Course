@@ -22,6 +22,8 @@ SPRITES = {
     "flor": ("🌸", 20),
     "estrella": ("⭐", 16),
     "corazon": ("💗", 16),
+    "huevo": ("🥚", 24),
+    "leche": ("🥛", 24),
 }
 
 
@@ -49,10 +51,31 @@ def sprite(emoji: str, lado: int) -> Image.Image:
     return final
 
 
+def saco_harina(lado: int = 24) -> Image.Image:
+    """Saco de harina dibujado a mano (no hay emoji adecuado)."""
+    im = Image.new("RGBA", (lado, lado))
+    d = ImageDraw.Draw(im)
+    crema, sombra, rosa = (246, 235, 217, 255), (226, 208, 182, 255), (238, 124, 156, 255)
+    d.polygon([(8, 2), (15, 2), (14, 7), (9, 7)], fill=crema)
+    d.rounded_rectangle((3, 7, 20, 22), radius=5, fill=crema)
+    d.rectangle((15, 9, 19, 21), fill=sombra)
+    d.rectangle((8, 6, 15, 7), fill=rosa)
+    d.rectangle((7, 12, 14, 18), fill=(255, 255, 255, 255))
+    d.rectangle((9, 14, 12, 16), fill=rosa)
+    d.point([(9, 1), (12, 1), (14, 1)], fill=(255, 255, 255, 255))
+    a = im.split()[3]
+    borde = a.filter(ImageFilter.MaxFilter(3))
+    final = Image.new("RGBA", (lado, lado))
+    final.paste(Image.new("RGBA", (lado, lado), CONTORNO), (0, 0), borde)
+    final.paste(im, (0, 0), im)
+    return final
+
+
 def main() -> None:
     SALIDA.mkdir(parents=True, exist_ok=True)
     for nombre, (emoji, lado) in SPRITES.items():
         sprite(emoji, lado).save(SALIDA / f"{nombre}.png")
+    saco_harina().save(SALIDA / "harina.png")
     print(f"{len(SPRITES)} sprites en {SALIDA}")
 
 

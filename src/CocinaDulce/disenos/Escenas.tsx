@@ -6,9 +6,9 @@ import { Tostada } from "../Tostada";
 import { Conejita } from "./Conejita";
 import type { Paleta } from "./paletas";
 
-const borde = (p: Paleta, g = 5) => `${g}px solid ${p.contorno}`;
+export const borde = (p: Paleta, g = 5) => `${g}px solid ${p.contorno}`;
 
-const texto = (p: Paleta, color: string, grosor: number): React.CSSProperties => ({
+export const texto = (p: Paleta, color: string, grosor: number): React.CSSProperties => ({
   color,
   WebkitTextStroke: `${grosor}px ${p.contorno}`,
   paintOrder: "stroke fill",
@@ -124,15 +124,28 @@ export const Cocina: React.FC<{ p: Paleta }> = ({ p }) => (
 );
 
 /** Despensa: armario de madera con estantes. */
-const Despensa: React.FC<{ p: Paleta; resaltado?: number }> = ({ p, resaltado }) => {
-  const items = [
+export const Despensa: React.FC<{
+  p: Paleta;
+  items?: [string, string][];
+  resaltado?: number;
+  /** Sprite que el cursor se ha llevado (se ve atenuado en su estante). */
+  enMano?: string;
+}> = ({
+  p,
+  items = [
     ["pan", "Pan"],
     ["mantequilla", "Mantequilla"],
     ["fresa", "Fresa"],
     ["miel", "Miel"],
-  ];
+  ],
+  resaltado,
+  enMano,
+}) => {
+  const alto = 640;
+  const paso = (alto - 50) / items.length;
+  const tam = Math.min(92, paso - 46);
   return (
-    <div style={{ position: "absolute", left: 900, top: 150, width: 250, height: 640 }}>
+    <div style={{ position: "absolute", left: 900, top: 150, width: 250, height: alto }}>
       <div style={{ position: "absolute", inset: 0, borderRadius: "30px 30px 16px 16px", backgroundColor: p.madera, border: borde(p, 6), boxShadow: `0 10px 0 ${p.contorno}` }} />
       <div style={{ position: "absolute", left: -12, right: -12, top: -16, height: 40, borderRadius: 16, backgroundColor: p.maderaOscura, border: borde(p, 5) }} />
       <div style={{ position: "absolute", left: 45, right: 45, top: -32, height: 50, borderRadius: 14, backgroundColor: p.panel, border: borde(p, 5), display: "flex", alignItems: "center", justifyContent: "center", fontFamily: C.pixel, fontWeight: 700, fontSize: 28, color: p.texto }}>
@@ -141,12 +154,12 @@ const Despensa: React.FC<{ p: Paleta; resaltado?: number }> = ({ p, resaltado })
       {items.map(([n, nombre], i) => {
         const on = resaltado === i;
         return (
-          <div key={n} style={{ position: "absolute", left: 18, right: 18, top: 40 + i * 148, height: 136 }}>
+          <div key={n} style={{ position: "absolute", left: 18, right: 18, top: 40 + i * paso, height: paso - 8 }}>
             <div style={{ position: "absolute", inset: "0 0 18px 0", borderRadius: 14, backgroundColor: on ? "#FFF3C4" : p.panel, border: borde(p, 4), boxShadow: on ? `0 0 0 6px ${p.acento}` : "inset 0 -10px 0 #00000010" }} />
-            <Sprite n={n} tam={92} style={{ position: "absolute", left: 60, top: 10 }} />
+            <Sprite n={n} tam={tam} style={{ position: "absolute", left: (214 - tam) / 2, top: (paso - 26 - tam) / 2, opacity: enMano === n ? 0.3 : 1 }} />
             <div style={{ position: "absolute", left: -10, right: -10, bottom: 0, height: 22, borderRadius: 6, backgroundColor: p.maderaOscura, border: borde(p, 4) }} />
             {on && (
-              <div style={{ position: "absolute", right: 250, top: 34, backgroundColor: p.texto, color: "#FFFFFF", fontFamily: C.pixel, fontWeight: 700, fontSize: 32, padding: "4px 16px", borderRadius: 10, whiteSpace: "nowrap" }}>
+              <div style={{ position: "absolute", right: 250, top: (paso - 70) / 2, backgroundColor: p.texto, color: "#FFFFFF", fontFamily: C.pixel, fontWeight: 700, fontSize: 32, padding: "4px 16px", borderRadius: 10, whiteSpace: "nowrap" }}>
                 {nombre}
               </div>
             )}
@@ -157,27 +170,28 @@ const Despensa: React.FC<{ p: Paleta; resaltado?: number }> = ({ p, resaltado })
   );
 };
 
-const BotonP: React.FC<{ p: Paleta; texto: string; x: number; y: number; w: number; tam?: number; color?: string; icono?: string }> = ({
-  p,
-  texto: t,
-  x,
-  y,
-  w,
-  tam = 46,
-  color,
-  icono,
-}) => (
+export const BotonP: React.FC<{
+  p: Paleta;
+  texto: string;
+  x: number;
+  y: number;
+  w: number;
+  tam?: number;
+  color?: string;
+  icono?: string;
+  presionado?: boolean;
+}> = ({ p, texto: t, x, y, w, tam = 46, color, icono, presionado = false }) => (
   <div
     style={{
       position: "absolute",
       left: x - w / 2,
-      top: y - 42,
+      top: y - 42 + (presionado ? 7 : 0),
       width: w,
       height: 84,
       borderRadius: 24,
       backgroundColor: color ?? p.ui,
       border: borde(p, 5),
-      boxShadow: `0 9px 0 ${p.contorno}`,
+      boxShadow: `0 ${presionado ? 2 : 9}px 0 ${p.contorno}`,
       display: "flex",
       alignItems: "center",
       justifyContent: "center",

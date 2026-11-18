@@ -51,7 +51,12 @@ npx remotion render AprendeAContar out/aprende-a-contar.mp4
 ## Estilo "Cocina Dulce" (`src/CocinaDulce/`)
 
 - Inspirado en juegos de cocina "para niña" de los 2000 (mezcla de pixel art y estilo ilustrado
-  pastel): vichy rosa, marcos de encaje, lazos, destellos, mascota propia "Mochi" en pixel art.
+  pastel), con aspecto pulido y detallado.
+- **Diseño elegido: paleta A "Fresa y crema"** (`src/CocinaDulce/disenos/paletas.ts`), paleta fija:
+  rosa fresa para interfaz, crema para paneles, madera clara para la despensa, fondo exterior lila
+  con lunares (distinto del interior), interior = cocina (ventana con cortinas, estante, azulejos,
+  encimera). Mascota: **Nube, la conejita repostera** en pixel art (`disenos/Conejita.tsx`, poses
+  normal/feliz/brazos). La mascota antigua "Mochi" ya no se usa.
   Estilo original: no copiar personajes, dibujos ni pantallas de juegos existentes.
 - Se siente como un juego: cursor de mano pixelado que se mueve, pasa por encima (tooltips),
   hace clic (onda + sonido) y arrastra ingredientes. Pantallas: título con "▶ JUGAR", cocina con
@@ -60,6 +65,8 @@ npx remotion render AprendeAContar out/aprende-a-contar.mp4
   videos con voz (≈ -22 dB), con los efectos por encima.
 - Dos formatos de la misma ventana de juego (1200×900 lógicos): `CocinaDulce-<receta>-vertical`
   (1080×1920, Instagram/TikTok, con lista de tareas abajo) y `-horizontal` (1920×1080, YouTube).
-- La coreografía (cursor, clics, tiempos) está en `src/CocinaDulce/tiempos.ts`.
+- Receta de referencia con el diseño final: `src/CocinaDulce/pancakes/` (pancakes japoneses,
+  composiciones `CocinaDulce-pancakes-vertical` / `-horizontal`). La coreografía (cursor, clics,
+  tiempos) está en `pancakes/tiempos.ts`; los objetos (bol, sartén, plato, pancake) en `pancakes/Objetos.tsx`.
 - Sprites pixelados: `scripts/generar_sprites.py` (emoji → pixel art con contorno) → `public/sprites/`.
 - Sonidos: `scripts/generar_sfx_kawaii.py` → `public/audio/kawaii/`.

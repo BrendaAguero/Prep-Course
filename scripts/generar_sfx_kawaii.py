@@ -125,6 +125,39 @@ def untar() -> np.ndarray:
     return r * env
 
 
+def crack() -> np.ndarray:
+    """Huevo que se casca: chasquido seco + pequeño goteo."""
+    rng = np.random.default_rng(11)
+    s = np.zeros(int(0.35 * SR))
+    for k, t0 in enumerate([0.0, 0.025, 0.06]):
+        n = int(0.03 * SR)
+        r = rng.standard_normal(n) * np.exp(-np.arange(n) / SR / 0.006)
+        i = int(t0 * SR)
+        s[i:i + n] += np.diff(r, prepend=0) * (1 - k * 0.25)
+    t = np.arange(int(0.12 * SR)) / SR
+    gota = np.sin(2 * np.pi * (900 - 2500 * t) * t) * np.exp(-t / 0.04) * 0.4
+    i = int(0.18 * SR)
+    s[i:i + len(gota)] += gota
+    return s
+
+
+def batir() -> np.ndarray:
+    """Batidor en un bol: vaivén rítmico de ruido suave (1 s, en bucle)."""
+    rng = np.random.default_rng(5)
+    n = SR
+    r = np.convolve(rng.standard_normal(n), np.ones(12) / 12, mode="same")
+    env = np.abs(np.sin(2 * np.pi * 4 * np.arange(n) / SR)) ** 3
+    return r * env
+
+
+def boing() -> np.ndarray:
+    """Rebote gelatinoso de los pancakes."""
+    t = np.arange(int(0.45 * SR)) / SR
+    f = 220 + 140 * np.sin(2 * np.pi * 7 * t) * np.exp(-t / 0.15)
+    fase = 2 * np.pi * np.cumsum(f) / SR
+    return np.sin(fase) * np.exp(-t / 0.18)
+
+
 def main() -> None:
     SALIDA.mkdir(parents=True, exist_ok=True)
     guardar_wav(SALIDA / "musica.wav", musica(), pico=0.3)
@@ -133,7 +166,8 @@ def main() -> None:
     (SALIDA / "musica.wav").unlink()
     for nombre, fn, pico in [("click", click, 0.5), ("bips", bips, 0.25), ("pop", pop, 0.5),
                              ("brillo", brillo, 0.45), ("jingle", jingle, 0.6),
-                             ("chorro", chorro, 0.35), ("untar", untar, 0.25)]:
+                             ("chorro", chorro, 0.35), ("untar", untar, 0.25),
+                             ("crack", crack, 0.5), ("batir", batir, 0.3), ("boing", boing, 0.45)]:
         guardar_wav(SALIDA / f"{nombre}.wav", fn(), pico=pico)
     print("Música y efectos de Cocina Dulce generados.")
 
