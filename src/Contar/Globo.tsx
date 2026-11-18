@@ -7,7 +7,8 @@ export const Globo: React.FC<{
   readonly delay: number;
   readonly numero: number;
   readonly size?: number;
-}> = ({ color, delay, numero, size = 220 }) => {
+  readonly fontSize?: number;
+}> = ({ color, delay, numero, size = 220, fontSize = 64 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -42,7 +43,7 @@ export const Globo: React.FC<{
       <div
         style={{
           marginTop: -20,
-          fontSize: 64,
+          fontSize,
           fontWeight: 700,
           color: "#333",
           opacity: etiqueta,

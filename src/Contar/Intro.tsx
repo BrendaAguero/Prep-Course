@@ -1,5 +1,7 @@
 import React from "react";
-import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { Audio } from "@remotion/media";
+import { AbsoluteFill, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { INTRO_VOZ } from "./tiempos";
 import { fontFamily } from "./fuente";
 import { Globo } from "./Globo";
 
@@ -12,6 +14,7 @@ export const Intro: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#BDE7FF", fontFamily }}>
+      <Audio src={staticFile("audio/voz/intro.mp3")} from={INTRO_VOZ} name="Voz intro" />
       <svg
         width={260}
         height={260}
@@ -44,14 +47,14 @@ export const Intro: React.FC = () => {
             transform: `translateY(${(1 - sub) * 40}px)`,
           }}
         >
-          Del 1 al 5 con globos
+          Del 1 al 10 con globos
         </div>
       </AbsoluteFill>
       <div style={{ position: "absolute", bottom: 40, left: 80 }}>
         <Globo color="#FF5A5F" numero={1} delay={10} size={150} />
       </div>
       <div style={{ position: "absolute", bottom: 40, right: 80 }}>
-        <Globo color="#7B5CFF" numero={5} delay={16} size={150} />
+        <Globo color="#7B5CFF" numero={10} delay={16} size={150} />
       </div>
     </AbsoluteFill>
   );
