@@ -7,6 +7,7 @@ import { RecetasCompositions } from "./Recetas";
 import { CocinaDulceCompositions } from "./CocinaDulce/Formatos";
 import { LaminasCompositions } from "./CocinaDulce/disenos/Laminas";
 import { PancakesCompositions } from "./CocinaDulce/pancakes/Formatos";
+import { LaminasFondosCompositions } from "./CocinaDulce/pancakes/LaminasFondos";
 
 // Each <Composition> is an entry in the sidebar!
 
@@ -22,6 +23,7 @@ export const RemotionRoot: React.FC = () => {
         height={1080}
       />
       <PancakesCompositions />
+      <LaminasFondosCompositions />
       <LaminasCompositions />
       <CocinaDulceCompositions />
       <RecetasCompositions />

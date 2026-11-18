@@ -107,12 +107,13 @@ const ListaTareas: React.FC = () => {
   );
 };
 
-export const Vertical: React.FC = () => {
+/** `fondo` permite probar otros fondos exteriores sin tocar la ventana del juego. */
+export const Vertical: React.FC<{ fondo?: React.FC; sinMusica?: boolean }> = ({ fondo: FondoExterior = Fondo, sinMusica = false }) => {
   const escala = 0.86;
   const x = (1080 - ANCHO * escala) / 2;
   return (
     <AbsoluteFill>
-      <Fondo />
+      <FondoExterior />
       <Lazo x={130} y={240} tam={190} rot={-18} color={P.ui} />
       <Lazo x={950} y={240} tam={190} rot={18} color={P.ui} />
       <div style={{ position: "absolute", top: 200, width: "100%", textAlign: "center" }}>
@@ -126,7 +127,7 @@ export const Vertical: React.FC = () => {
       <ListaTareas />
       <Destello x={990} y={470} tam={56} fase={2} color={P.acento} />
       <Destello x={90} y={470} tam={44} />
-      <Musica />
+      {!sinMusica && <Musica />}
     </AbsoluteFill>
   );
 };
