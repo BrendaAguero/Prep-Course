@@ -2,14 +2,20 @@
 
 - Usa solo las URLs "preview-hq-mp3" de la API v2 (nunca el endpoint /download/, que exige OAuth2).
 - Guarda cada MP3 directamente en `sounds/` (la crea si no existe), con nombre
-  `<titulo>__<id>__<autor>__cc0.mp3`, y registra título, ID, autor, licencia y URL en
-  `sounds/creditos.csv`.
+  `<titulo>__<id>__<autor>__<licencia>.mp3`, y registra título, ID, autor, licencia, URL y el
+  texto de atribución en `sounds/creditos.csv`; además regenera `sounds/CREDITOS.txt`, listo para
+  pegar en la descripción del video.
+- Solo acepta licencias compatibles con videos monetizados (--licencias):
+    cc0  Creative Commons 0 (dominio público; atribución opcional pero se conserva)
+    by   Creative Commons Attribution 3.0/4.0 (atribución OBLIGATORIA)
+  Nunca descarga NonCommercial (BY-NC) ni Sampling+.
 - Comprueba que cada archivo descargado no está vacío y es un MP3 válido.
 
 Uso:
     python scripts/freesound_descargar.py --buscar "egg crack" --cantidad 3
     python scripts/freesound_descargar.py --ids 336612 435000
     python scripts/freesound_descargar.py --pedido sounds/pedido.txt   # una búsqueda o ID por línea
+    python scripts/freesound_descargar.py --buscar "kitchen ambience" --licencias cc0      # solo CC0
 
 Clave: variable de entorno FREESOUND_TOKEN. Si no existe, se envía la petición sin cabecera
 (en el entorno de Claude Code el proxy añade la clave guardada).
@@ -34,7 +40,28 @@ CARPETA = RAIZ / "sounds"
 CREDITOS = CARPETA / "creditos.csv"
 API = "https://freesound.org/apiv2"
 CAMPOS = "id,name,username,license,duration,previews,url"
-CC0 = "publicdomain/zero/1.0"
+# Licencias aceptadas: clave → (nombre del filtro en Freesound, fragmentos válidos de la URL, sufijo)
+LICENCIAS = {
+    "cc0": ("Creative Commons 0", ["publicdomain/zero/1.0"]),
+    "by": ("Attribution", ["licenses/by/4.0", "licenses/by/3.0"]),
+}
+
+
+def tipo_licencia(url: str) -> str | None:
+    """'cc0', 'by4', 'by3' o None si no es una licencia aceptada."""
+    u = url.lower()
+    if "publicdomain/zero/1.0" in u:
+        return "cc0"
+    if "/by-nc" in u or "sampling" in u:
+        return None
+    if "licenses/by/4.0" in u:
+        return "by4"
+    if "licenses/by/3.0" in u:
+        return "by3"
+    return None
+
+
+NOMBRE_LICENCIA = {"cc0": "CC0 1.0", "by4": "CC BY 4.0", "by3": "CC BY 3.0"}
 USER_AGENT = "FuwaFuwaKitchen-SoundBank/1.0 (+https://freesound.org/docs/api/)"
 TAM_MINIMO = 2048  # bytes; menos que esto no es un audio útil
 
@@ -89,8 +116,9 @@ def es_mp3(datos: bytes) -> bool:
     return len(datos) > 1 and datos[0] == 0xFF and (datos[1] & 0xE0) == 0xE0
 
 
-def buscar(consulta: str, cantidad: int, dur_min: float, dur_max: float) -> list[dict]:
-    filtro = f'license:"Creative Commons 0" duration:[{dur_min} TO {dur_max}]'
+def buscar(consulta: str, cantidad: int, dur_min: float, dur_max: float, licencias: list[str]) -> list[dict]:
+    nombres = " OR ".join(f'"{LICENCIAS[l][0]}"' for l in licencias)
+    filtro = f"license:({nombres}) duration:[{dur_min} TO {dur_max}]"
     q = urllib.parse.urlencode({"query": consulta, "filter": filtro, "fields": CAMPOS, "page_size": cantidad})
     return pedir(f"{API}/search/text/?{q}").get("results", [])
 
@@ -106,24 +134,51 @@ def ya_registrados() -> set[str]:
         return {fila["id"] for fila in csv.DictReader(f)}
 
 
+CAMPOS_CSV = ["archivo", "id", "titulo", "autor", "licencia", "licencia_url", "atribucion_obligatoria",
+              "atribucion", "duracion_s", "url", "consulta"]
+
+
+def atribucion(titulo: str, autor: str, url: str, lic: str, lic_url: str) -> str:
+    """Texto de crédito según la recomendación de Creative Commons (título, autor, fuente, licencia)."""
+    return f'"{titulo}" de {autor} ({url}), {NOMBRE_LICENCIA[lic]} – {lic_url}'
+
+
+def escribir_creditos_txt() -> None:
+    if not CREDITOS.exists():
+        return
+    with CREDITOS.open(encoding="utf-8") as f:
+        filas = list(csv.DictReader(f))
+    obligatorias = [r for r in filas if r["atribucion_obligatoria"] == "si"]
+    opcionales = [r for r in filas if r["atribucion_obligatoria"] != "si"]
+    lineas = ["CRÉDITOS DE SONIDO (Freesound.org)", ""]
+    if obligatorias:
+        lineas += ["Atribución obligatoria (Creative Commons Attribution):"]
+        lineas += [f"- {r['atribucion']}" for r in obligatorias] + [""]
+    if opcionales:
+        lineas += ["Dominio público (CC0), créditos por cortesía:"]
+        lineas += [f"- {r['atribucion']}" for r in opcionales]
+    (CARPETA / "CREDITOS.txt").write_text("\n".join(lineas) + "\n", encoding="utf-8")
+
+
 def registrar(fila: dict) -> None:
     nuevo = not CREDITOS.exists()
     with CREDITOS.open("a", newline="", encoding="utf-8") as f:
-        w = csv.DictWriter(f, fieldnames=["archivo", "id", "titulo", "autor", "licencia", "duracion_s", "url", "consulta"])
+        w = csv.DictWriter(f, fieldnames=CAMPOS_CSV)
         if nuevo:
             w.writeheader()
         w.writerow(fila)
 
 
-def descargar(s: dict, consulta: str) -> str:
+def descargar(s: dict, consulta: str, licencias: list[str]) -> str:
     """Descarga un sonido; devuelve 'ok', 'existe' o el motivo por el que se salta."""
     sid = str(s["id"])
-    if CC0 not in s.get("license", ""):
-        return f"licencia no CC0 ({s.get('license')})"
+    lic = tipo_licencia(s.get("license", ""))
+    if lic is None or (lic == "cc0" and "cc0" not in licencias) or (lic.startswith("by") and "by" not in licencias):
+        return f"licencia no permitida ({s.get('license')})"
     url = (s.get("previews") or {}).get("preview-hq-mp3")
     if not url:
         return "sin preview-hq-mp3"
-    nombre = f"{slug(s['name'])}__{sid}__{slug(s['username'], 24)}__cc0.mp3"
+    nombre = f"{slug(s['name'])}__{sid}__{slug(s['username'], 24)}__{lic}.mp3"
     destino = CARPETA / nombre
     if destino.exists() and destino.stat().st_size >= TAM_MINIMO:
         return "existe"
@@ -136,10 +191,13 @@ def descargar(s: dict, consulta: str) -> str:
     if destino.stat().st_size != len(datos):
         destino.unlink(missing_ok=True)
         return "error al guardar en disco"
+    pagina = s.get("url") or f"https://freesound.org/s/{sid}/"
     registrar({
         "archivo": nombre, "id": sid, "titulo": s["name"], "autor": s["username"],
-        "licencia": s["license"], "duracion_s": f"{float(s.get('duration', 0)):.1f}",
-        "url": s.get("url") or f"https://freesound.org/s/{sid}/", "consulta": consulta,
+        "licencia": NOMBRE_LICENCIA[lic], "licencia_url": s["license"],
+        "atribucion_obligatoria": "si" if lic.startswith("by") else "no",
+        "atribucion": atribucion(s["name"], s["username"], pagina, lic, s["license"]),
+        "duracion_s": f"{float(s.get('duration', 0)):.1f}", "url": pagina, "consulta": consulta,
     })
     return "ok"
 
@@ -152,7 +210,11 @@ def main() -> int:
     ap.add_argument("--cantidad", type=int, default=3, help="sonidos por consulta")
     ap.add_argument("--dur-min", type=float, default=0.7)
     ap.add_argument("--dur-max", type=float, default=30)
+    ap.add_argument("--licencias", default="cc0,by", help="licencias aceptadas: cc0, by o cc0,by (por defecto)")
     a = ap.parse_args()
+    licencias = [l.strip() for l in a.licencias.split(",") if l.strip()]
+    if not licencias or any(l not in LICENCIAS for l in licencias):
+        ap.error("--licencias solo admite: cc0, by")
 
     consultas, ids = list(a.buscar), list(a.ids)
     if a.pedido:
@@ -170,7 +232,7 @@ def main() -> int:
     try:
         trabajo: list[tuple[dict, str]] = []
         for c in consultas:
-            for s in buscar(c, a.cantidad, a.dur_min, a.dur_max):
+            for s in buscar(c, a.cantidad, a.dur_min, a.dur_max, licencias):
                 trabajo.append((s, c))
         for sid in ids:
             trabajo.append((info(sid), f"id:{sid}"))
@@ -185,7 +247,7 @@ def main() -> int:
             cuenta["existe"] += 1
             continue
         try:
-            r = descargar(s, c)
+            r = descargar(s, c, licencias)
         except Bloqueado as e:
             print(f"✗ {sid}: bloqueado ({e})")
             cuenta["error"] += 1
@@ -205,6 +267,7 @@ def main() -> int:
             print(f"↷ {sid}: {r}")
         time.sleep(0.5)
 
+    escribir_creditos_txt()
     print(f"\nDescargados {cuenta['ok']} · ya existían {cuenta['existe']} · saltados {cuenta['saltado']} · errores {cuenta['error']}")
     print(f"Carpeta: {CARPETA}")
     return 0 if cuenta["error"] == 0 else 1
