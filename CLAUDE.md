@@ -70,3 +70,12 @@ npx remotion render AprendeAContar out/aprende-a-contar.mp4
   tiempos) está en `pancakes/tiempos.ts`; los objetos (bol, sartén, plato, pancake) en `pancakes/Objetos.tsx`.
 - Sprites pixelados: `scripts/generar_sprites.py` (emoji → pixel art con contorno) → `public/sprites/`.
 - Sonidos: `scripts/generar_sfx_kawaii.py` → `public/audio/kawaii/`.
+
+## Banco de sonidos ASMR (`sonidos-asmr/`)
+
+- Banco **general** de sonidos de cocina reales CC0, organizado por acción, para cualquier receta
+  (ver `sonidos-asmr/README.md`). Se usa en las versiones ASMR (YouTube) y se mezcla con los
+  sonidos de "juego" en TikTok.
+- Se llena con `scripts/colab_descargar_sonidos.py` en Google Colab (Freesound bloquea las
+  descargas desde el entorno de Claude). Al añadir una receta: pasos reales → acciones del banco;
+  si falta una acción, añadirla al `CATALOGO` del script y al README.

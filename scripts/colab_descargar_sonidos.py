@@ -1,19 +1,30 @@
-#@title 🍓 Fuwa Fuwa Kitchen · Descargar sonidos CC0 de Freesound { display-mode: "form" }
+#@title 🍓 Fuwa Fuwa Kitchen · Banco de sonidos ASMR (CC0) { display-mode: "form" }
 #@markdown ### 1. Tu clave de Freesound
-#@markdown Pega aquí tu *Client secret / API key* (freesound.org/apiv2/apply).
-#@markdown **Obligatoria para "Lista de la receta".** En "Búsqueda" puedes dejarla vacía (se usa Openverse).
+#@markdown Pega aquí tu *Client secret / API key* (freesound.org/apiv2/apply). Recomendada en todos los modos;
+#@markdown sin clave solo funciona "Búsqueda" y "Banco general" (vía Openverse, con menos resultados).
 TOKEN_FREESOUND = ""  #@param {type:"string"}
 
 #@markdown ### 2. ¿Qué quieres descargar?
-MODO = "Lista de la receta"  #@param ["Lista de la receta", "Búsqueda"]
-RECETA = "Pancakes japoneses (38 sonidos)"  #@param ["Pancakes japoneses (38 sonidos)", "Lista personalizada"]
-#@markdown Solo para **Lista personalizada**: pares `accion:id` separados por espacios (ej. `cascar-huevo:336612 tapa:435000`).
-LISTA_PERSONALIZADA = ""  #@param {type:"string"}
+MODO = "Banco general"  #@param ["Banco general", "Búsqueda", "Lista de IDs"]
 
-#@markdown Solo para **Búsqueda** (en inglés funciona mejor):
+#@markdown **Banco general**: marca las categorías que quieras llenar (sirve para cualquier receta).
+HUEVOS_Y_BATIDOS = True  #@param {type:"boolean"}
+CORTAR_Y_PREPARAR = True  #@param {type:"boolean"}
+SECOS = True  #@param {type:"boolean"}
+LIQUIDOS = True  #@param {type:"boolean"}
+COCCION = True  #@param {type:"boolean"}
+HORNO_Y_APARATOS = True  #@param {type:"boolean"}
+UTENSILIOS_Y_SERVICIO = True  #@param {type:"boolean"}
+AMBIENTE = True  #@param {type:"boolean"}
+SONIDOS_POR_ACCION = 3  #@param {type:"slider", min:1, max:8, step:1}
+
+#@markdown **Búsqueda**: un término (en inglés funciona mejor) y la acción donde guardarlo.
 BUSQUEDA = "egg crack"  #@param {type:"string"}
 ACCION = "cascar-huevo"  #@param {type:"string"}
 CANTIDAD = 5  #@param {type:"slider", min:1, max:20, step:1}
+
+#@markdown **Lista de IDs**: pares `accion:id` separados por espacios. Vacío = lista elegida para los pancakes.
+LISTA_IDS = ""  #@param {type:"string"}
 
 #@markdown ### 3. Filtros y formato
 DURACION_MIN = 0.7  #@param {type:"number"}
@@ -38,6 +49,76 @@ import urllib.error
 USER_AGENT = "FuwaFuwaKitchen-SoundBank/1.0 (Google Colab; descarga de sonidos CC0)"
 CC0 = "publicdomain/zero/1.0"
 CARPETA = "sonidos-asmr"
+# Catálogo del banco: categoría → acción → búsquedas en inglés (de más a menos precisa).
+# Para ampliar el banco, añade acciones aquí; el nombre de la acción es la carpeta.
+CATALOGO = {
+    "HUEVOS_Y_BATIDOS": {
+        "cascar-huevo": ["egg crack", "cracking egg", "egg break bowl"],
+        "batir-mano": ["whisking", "whisk bowl", "beating eggs"],
+        "batidora": ["hand mixer", "electric mixer", "whipping cream"],
+        "mezclar-espatula": ["mixing batter", "spatula bowl", "scraping bowl"],
+        "remover-cuchara": ["stirring spoon", "stirring bowl", "stir pot"],
+    },
+    "CORTAR_Y_PREPARAR": {
+        "cortar-tabla": ["chopping board", "knife chopping", "cutting board knife"],
+        "picar-verdura": ["chopping vegetables", "cutting onion", "chopping carrot"],
+        "cortar-fruta": ["cutting apple", "slicing fruit", "cutting strawberry"],
+        "pelar": ["peeling vegetable", "peeler", "peeling potato"],
+        "rallar": ["grater", "grating cheese", "grating"],
+        "amasar": ["kneading dough", "dough", "bread dough"],
+        "rodillo": ["rolling pin", "rolling dough"],
+        "machacar": ["mortar pestle", "mashing", "crushing garlic"],
+    },
+    "SECOS": {
+        "tamizar": ["sieve", "sifting flour", "sift"],
+        "verter-seco": ["pouring sugar", "pouring rice", "pouring flour"],
+        "espolvorear": ["sprinkle sugar", "salt shaker", "sprinkling"],
+        "bolsa-seca": ["flour bag", "paper bag kitchen", "rustling bag"],
+    },
+    "LIQUIDOS": {
+        "verter-liquido": ["pouring water", "pouring milk", "pour liquid"],
+        "verter-aceite": ["pouring oil", "oil pan"],
+        "verter-espeso": ["pouring syrup", "honey", "viscous pour"],
+        "grifo": ["kitchen faucet", "tap water sink", "filling glass water"],
+        "gotear": ["dripping water", "drip", "drops"],
+    },
+    "COCCION": {
+        "chisporroteo": ["sizzle pan", "frying pan sizzle", "butter sizzling"],
+        "freir-aceite": ["deep frying", "frying oil", "frying"],
+        "hervir": ["boiling water", "simmering pot", "boiling"],
+        "agua-sarten": ["water hot pan", "water sizzle", "steam sizzle"],
+        "tapa": ["pot lid", "glass lid", "lid off"],
+        "voltear": ["spatula flip", "pancake flip", "spatula"],
+        "olla-sarten": ["pan on stove", "frying pan", "pot stove"],
+        "encender-fuego": ["gas stove ignition", "stove click", "gas burner"],
+    },
+    "HORNO_Y_APARATOS": {
+        "horno-puerta": ["oven door", "oven open close"],
+        "horno-ambiente": ["oven fan", "oven hum"],
+        "microondas": ["microwave", "microwave beep"],
+        "tostadora": ["toaster", "toaster pop"],
+        "licuadora": ["blender", "food processor"],
+        "nevera": ["fridge door", "refrigerator open close", "freezer door"],
+        "temporizador": ["kitchen timer", "timer ding", "timer ticking"],
+        "hervidor": ["kettle", "electric kettle"],
+    },
+    "UTENSILIOS_Y_SERVICIO": {
+        "plato": ["plate set down", "ceramic plate", "plate table"],
+        "cubiertos": ["cutlery", "spoon clink", "fork plate"],
+        "vaso": ["glass clink", "glass table", "pouring drink glass"],
+        "bol-mesa": ["bowl on table", "glass bowl", "ceramic bowl"],
+        "cajon": ["kitchen drawer", "drawer open close"],
+        "frasco": ["jar open", "jar lid", "unscrew lid"],
+        "envoltorio": ["plastic wrap", "foil", "wrapper"],
+        "papel-cocina": ["paper towel", "tearing paper towel"],
+    },
+    "AMBIENTE": {
+        "cocina-ambiente": ["kitchen ambience", "kitchen room tone", "kitchen background"],
+        "lluvia-ventana": ["rain window", "soft rain"],
+        "pajaros": ["birds morning", "birdsong distant"],
+    },
+}
+
 LISTA_PANCAKES = """
 cascar-huevo:336612 cascar-huevo:253798 cascar-huevo:585636 cascar-huevo:539488
 separar-huevo:118608
@@ -171,12 +252,39 @@ def descargar(info, accion):
 
 def tareas():
     """Lista de (accion, id) o de (accion, info) según el modo."""
+    if MODO == "Banco general":
+        elegidas = [c for c in CATALOGO if globals().get(c)]
+        vistos, salida = set(), []
+        for cat in elegidas:
+            for accion, terminos in CATALOGO[cat].items():
+                reunidos = []
+                for termino in terminos:
+                    if len(reunidos) >= SONIDOS_POR_ACCION:
+                        break
+                    try:
+                        for i in buscar(termino, SONIDOS_POR_ACCION):
+                            if i["id"] in vistos or CC0 not in i["licencia"]:
+                                continue
+                            if not (DURACION_MIN <= i["duracion"] <= DURACION_MAX):
+                                continue
+                            vistos.add(i["id"])
+                            reunidos.append(i)
+                            if len(reunidos) >= SONIDOS_POR_ACCION:
+                                break
+                    except Exception as e:  # noqa: BLE001
+                        informe["errores"].append((accion, termino, f"búsqueda: {str(e)[:80]}"))
+                    time.sleep(0.4)
+                if not reunidos:
+                    informe["saltados"].append((accion, "-", "sin resultados CC0 en el catálogo"))
+                salida += [(accion, i) for i in reunidos]
+                print(f"  · {accion}: {len(reunidos)} encontrados")
+        return salida
     if MODO == "Búsqueda":
         accion = limpiar(ACCION)
         encontrados = buscar(BUSQUEDA, CANTIDAD)
         validos = [i for i in encontrados if CC0 in i["licencia"] and DURACION_MIN <= i["duracion"] <= DURACION_MAX]
         return [(accion, i) for i in validos[:CANTIDAD]]
-    texto = LISTA_PANCAKES if RECETA.startswith("Pancakes") else LISTA_PERSONALIZADA
+    texto = LISTA_IDS if LISTA_IDS.strip() else LISTA_PANCAKES
     pares = []
     for trozo in texto.split():
         if ":" in trozo:
@@ -189,14 +297,15 @@ def tareas():
 # ------------------------------------------------------------------------------------
 print("🍓 Fuwa Fuwa Kitchen · banco de sonidos ASMR\n")
 print("Fuente:", "API de Freesound (con clave)" if TOKEN_FREESOUND.strip() else "Openverse (sin clave)")
+print("Modo:", MODO, "\n")
 shutil.rmtree(CARPETA, ignore_errors=True)
 os.makedirs(CARPETA)
 
-if MODO != "Búsqueda" and not TOKEN_FREESOUND.strip():
+if MODO == "Lista de IDs" and not TOKEN_FREESOUND.strip():
     print("⚠️  Para descargar la lista necesitas tu clave de Freesound (arriba, en el paso 1).")
     print("   Pégala y vuelve a ejecutar la celda.\n")
 try:
-    trabajo = [] if (MODO != "Búsqueda" and not TOKEN_FREESOUND.strip()) else tareas()
+    trabajo = [] if (MODO == "Lista de IDs" and not TOKEN_FREESOUND.strip()) else tareas()
 except Exception as e:  # noqa: BLE001
     trabajo = []
     informe["errores"].append(("búsqueda", "-", str(e)))
