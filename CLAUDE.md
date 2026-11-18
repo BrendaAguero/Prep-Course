@@ -2,7 +2,8 @@
 
 ## Reglas para todos los videos
 
-- **Todos los videos llevan música y voz.** Sin excepción.
+- **Todos los videos llevan música y voz**, excepto el estilo "Cocina Dulce" (juego), que va
+  **sin voz salvo que sea necesaria**: el texto aparece en pantalla con bips, como en un juego.
   - Voz en español con `edge-tts` (voz `es-MX-DaliaNeural`, `rate=-8%`, `pitch=+10Hz`),
     normalizada a -16 LUFS y sin silencios al inicio/fin.
   - Música de fondo original (generada por código, sin derechos de terceros),
@@ -46,3 +47,19 @@ npx remotion render AprendeAContar out/aprende-a-contar.mp4
   intervienen) y `color` (color de la mezcla). Sin `accion` se usa una animación genérica.
 - Música chiptune y efectos (ding, click, chisporroteo, fanfarria):
   `.venv/bin/python scripts/generar_sfx_juego.py` → `public/audio/juego/`.
+
+## Estilo "Cocina Dulce" (`src/CocinaDulce/`)
+
+- Inspirado en juegos de cocina "para niña" de los 2000 (mezcla de pixel art y estilo ilustrado
+  pastel): vichy rosa, marcos de encaje, lazos, destellos, mascota propia "Mochi" en pixel art.
+  Estilo original: no copiar personajes, dibujos ni pantallas de juegos existentes.
+- Se siente como un juego: cursor de mano pixelado que se mueve, pasa por encima (tooltips),
+  hace clic (onda + sonido) y arrastra ingredientes. Pantallas: título con "▶ JUGAR", cocina con
+  despensa y cinta de instrucciones, "¡Has conseguido una receta nueva!", libro de recetas.
+- Sin voz. Texto letra a letra con bips; música propia tipo juego portátil más alta que en los
+  videos con voz (≈ -22 dB), con los efectos por encima.
+- Dos formatos de la misma ventana de juego (1200×900 lógicos): `CocinaDulce-<receta>-vertical`
+  (1080×1920, Instagram/TikTok, con lista de tareas abajo) y `-horizontal` (1920×1080, YouTube).
+- La coreografía (cursor, clics, tiempos) está en `src/CocinaDulce/tiempos.ts`.
+- Sprites pixelados: `scripts/generar_sprites.py` (emoji → pixel art con contorno) → `public/sprites/`.
+- Sonidos: `scripts/generar_sfx_kawaii.py` → `public/audio/kawaii/`.

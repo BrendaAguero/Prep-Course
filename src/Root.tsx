@@ -4,6 +4,7 @@ import { Logo } from "./HelloWorld/Logo";
 import { Title } from "./HelloWorld/Title";
 import { AprendeAContar, DURACION_TOTAL } from "./Contar";
 import { RecetasCompositions } from "./Recetas";
+import { CocinaDulceCompositions } from "./CocinaDulce/Formatos";
 
 // Each <Composition> is an entry in the sidebar!
 
@@ -18,6 +19,7 @@ export const RemotionRoot: React.FC = () => {
         width={1920}
         height={1080}
       />
+      <CocinaDulceCompositions />
       <RecetasCompositions />
       <Folder name="Elements">
         <Composition
