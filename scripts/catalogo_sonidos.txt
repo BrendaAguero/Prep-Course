@@ -11,6 +11,9 @@ mezclar-espatula | id:474041 ; mixing batter ; folding batter spatula ; batter b
 remover-cuchara | stirring spoon ; stirring bowl ; stir pot
 
 # POSTRES
+batir-masa | id:178398 ; whisking batter ; pancake mix
+masa-cucharada | id:592824 ; id:274499 ; batter dollop
+esponjoso | id:594753 ; id:331984 ; sponge press soft
 gelatina-temblar | id:181914 ; id:181911 ; id:181910 ; jelly wobble ; jelly plate
 
 # CORTAR_Y_PREPARAR
