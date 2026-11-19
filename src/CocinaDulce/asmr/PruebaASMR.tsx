@@ -35,6 +35,7 @@ const T = {
   siropeAudio: 900,
   sirope: [905, 1040] as const,
   fresas: [1055, 1068],
+  cucharadas: [368, 410, 452], // modo juego: cucharadas de masa que se apilan
   final: 1080,
   total: 1170,
 };
@@ -42,7 +43,7 @@ const T = {
 const PASOS: [number, number, string][] = [
   [0, 115, "Cascar el huevo"],
   [120, 315, "Batir"],
-  [345, 480, "Verter la masa"],
+  [345, 480, "Masa a la sartén"],
   [480, 585, "Fuego bajo"],
   [585, 690, "Dar la vuelta"],
   [720, 900, "Emplatar"],
@@ -52,7 +53,19 @@ const PASOS: [number, number, string][] = [
 const DORADO = "#E2A253";
 const LADO = "#F8DDAA";
 
-const Escena: React.FC = () => {
+type Modo = "real" | "juego";
+// En modo juego el temblor se marca con "boings" propios, no con el sonido de gelatina.
+const tiemposTemblor = (modo: Modo) => (modo === "juego" ? [T.aterriza + 3, T.aterriza + 26, T.aterriza + 52, T.aterriza + 80] : T.temblores);
+
+const Cuchara: React.FC<{ x: number; y: number; conMasa: boolean }> = ({ x, y, conMasa }) => (
+  <svg width={220} height={300} viewBox="-110 -40 220 300" style={{ position: "absolute", left: x - 110, top: y - 40, overflow: "visible" }}>
+    <rect x={-12} y={-190} width={24} height={200} rx={12} fill={P.maderaOscura} stroke={P.contorno} strokeWidth={5} transform="rotate(28 0 10)" />
+    <ellipse cx={0} cy={30} rx={62} ry={40} fill="#D9D3DB" stroke={P.contorno} strokeWidth={6} />
+    {conMasa && <ellipse cx={0} cy={18} rx={52} ry={30} fill="#FFF1D6" stroke="#EAD3A8" strokeWidth={4} />}
+  </svg>
+);
+
+const Escena: React.FC<{ modo: Modo }> = ({ modo }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -67,7 +80,10 @@ const Escena: React.FC = () => {
   const dxSarten =
     interpolate(frame, [T.cambioSarten + 6, T.cambioSarten + 26], [1300, 0], { ...clamp, easing: Easing.out(Easing.quad) }) +
     interpolate(frame, [T.cambioPlato, T.cambioPlato + 18], [0, -1300], { ...clamp, easing: Easing.in(Easing.quad) });
-  const masa = interpolate(frame, [T.verter[0] + 20, T.verter[1]], [0, 1], clamp);
+  const masa =
+    modo === "juego"
+      ? T.cucharadas.reduce((acc, c) => acc + spring({ frame: frame - c, fps, config: { damping: 9 } }) / T.cucharadas.length, 0)
+      : interpolate(frame, [T.verter[0] + 20, T.verter[1]], [0, 1], clamp);
   const sube = interpolate(frame, [...T.subir], [0, 1], { ...clamp, easing: Easing.out(Easing.quad) });
   const vuelta = interpolate(frame, [T.voltear - 22, T.voltear], [0, 1], clamp);
   const hecho = vuelta >= 0.5;
@@ -76,7 +92,7 @@ const Escena: React.FC = () => {
   // --- Plato: aterrizaje, temblores y sirope
   const dxPlato = interpolate(frame, [T.cambioPlato + 6, T.cambioPlato + 26], [1300, 0], { ...clamp, easing: Easing.out(Easing.quad) });
   const caida = spring({ frame: frame - (T.aterriza - 10), fps, config: { damping: 12, stiffness: 160 } });
-  const ultimo = [...T.temblores, T.aterriza].filter((t) => frame >= t).sort((a, b) => b - a)[0];
+  const ultimo = [...tiemposTemblor(modo), T.aterriza].filter((t) => frame >= t).sort((a, b) => b - a)[0];
   const temblor = ultimo !== undefined ? Math.sin((frame - ultimo) * 1.1) * Math.exp(-(frame - ultimo) / 9) * 0.13 : 0;
   const sirope = interpolate(frame, [...T.sirope], [0, 1], clamp);
   const hPlato = 130;
@@ -143,7 +159,15 @@ const Escena: React.FC = () => {
             }
           />
           {/* chorro de masa */}
-          {frame >= T.verter[0] && frame <= T.verter[1] && (
+          {modo === "juego" &&
+            T.cucharadas.map((c) => {
+              if (frame < c - 28 || frame > c + 14) return null;
+              const baja = interpolate(frame, [c - 28, c], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) });
+              const sube = interpolate(frame, [c, c + 14], [0, 1], clamp);
+              const yCuchara = 180 + (Y - 6 - altura - 60 - 180) * baja - 160 * sube;
+              return <Cuchara key={c} x={X + 30} y={yCuchara} conMasa={frame < c} />;
+            })}
+          {modo === "real" && frame >= T.verter[0] && frame <= T.verter[1] && (
             <div
               style={{
                 position: "absolute",
@@ -250,8 +274,60 @@ const Final: React.FC = () => {
 };
 
 const sonido = (n: string) => staticFile(`audio/asmr/${n}.mp3`);
+const juego = (n: string) => staticFile(`audio/cocina-juego/${n}.wav`);
+const kawaii = (n: string) => staticFile(`audio/kawaii/${n}`);
 
-export const PruebaASMR: React.FC = () => {
+const SonidosReales: React.FC = () => (
+  <>
+    <Audio src={sonido("cascar")} from={T.huevoAudio} name="Cascar huevo" />
+    <Audio src={sonido("batir")} from={T.batir[0]} name="Batir" />
+    <Audio src={sonido("verter-masa")} from={T.verterAudio} name="Verter masa" />
+    <Sequence from={T.chisporroteo} durationInFrames={T.cambioPlato + 20 - T.chisporroteo} layout="none" name="Chisporroteo">
+      <Audio src={sonido("chisporroteo")} volume={(f) => interpolate(f, [0, 20, 310, 350], [0, 0.9, 0.9, 0], clamp)} />
+    </Sequence>
+    <Audio src={sonido("voltear")} from={T.voltearAudio} name="Voltear" />
+    <Audio src={sonido("plato")} from={T.platoAudio} name="Plato" />
+    <Audio src={sonido("temblor")} from={T.temblorAudio} name="Temblor" />
+    <Audio src={sonido("sirope")} from={T.siropeAudio} name="Sirope" />
+  </>
+);
+
+const VOLUMEN_MUSICA = 0.32;
+
+const SonidosJuego: React.FC = () => (
+  <>
+    <Audio
+      name="Música"
+      src={kawaii("musica.mp3")}
+      loop
+      volume={(f) => interpolate(f, [0, 30, T.total - 45, T.total], [0, VOLUMEN_MUSICA, VOLUMEN_MUSICA, 0], clamp)}
+    />
+    <Audio src={juego("toc-huevo")} from={63} name="Toc huevo" />
+    <Audio src={kawaii("crack.wav")} from={T.crack} volume={0.8} name="Crack" />
+    <Audio src={juego("batir")} from={T.batir[0]} name="Batir" />
+    {T.cucharadas.map((c, i) => (
+      <Audio key={c} src={juego(`plop-${i + 1}`)} from={c} name={`Plop ${i + 1}`} />
+    ))}
+    <Sequence from={T.chisporroteo} durationInFrames={T.cambioPlato + 20 - T.chisporroteo} layout="none" name="Chisporroteo">
+      <Audio src={juego("chisporroteo")} loop volume={(f) => interpolate(f, [0, 25, 310, 350], [0, 0.7, 0.7, 0], clamp)} />
+    </Sequence>
+    <Audio src={juego("fwip")} from={T.voltear - 22} name="Fwip" />
+    <Audio src={juego("toc")} from={T.voltear} name="Toc" />
+    <Audio src={juego("tac-plato")} from={T.aterriza} name="Tac plato" />
+    {tiemposTemblor("juego").map((t, i) => (
+      <Audio key={t} src={juego("boing-esponjoso")} from={t} volume={[0.9, 0.6, 0.4, 0.25][i]} name={`Boing ${i + 1}`} />
+    ))}
+    <Sequence from={T.sirope[0]} durationInFrames={T.sirope[1] - T.sirope[0]} layout="none" name="Sirope">
+      <Audio src={juego("gorgoteo")} loop />
+    </Sequence>
+    {T.fresas.map((f) => (
+      <Audio key={f} src={kawaii("pop.wav")} from={f} volume={0.4} name="Pop fresa" />
+    ))}
+    <Audio src={juego("tintineo")} from={T.final} name="Tintineo" />
+  </>
+);
+
+export const PruebaASMR: React.FC<{ modo: Modo }> = ({ modo }) => {
   const frame = useCurrentFrame();
   const fundido = interpolate(frame, [0, 15, T.total - 20, T.total], [0, 1, 1, 0], clamp);
   return (
@@ -259,25 +335,19 @@ export const PruebaASMR: React.FC = () => {
       <AbsoluteFill style={{ opacity: fundido }}>
         {/* cámara cercana: ventana de juego 1200×900 ampliada sobre la encimera */}
         <div style={{ position: "absolute", left: 0, top: -340, width: 1200, height: 900, transform: "scale(1.6)", transformOrigin: "0 0", overflow: "hidden" }}>
-          <Escena />
+          <Escena modo={modo} />
         </div>
         <Rotulo />
         <Final />
       </AbsoluteFill>
-      <Audio src={sonido("cascar")} from={T.huevoAudio} name="Cascar huevo" />
-      <Audio src={sonido("batir")} from={T.batir[0]} name="Batir" />
-      <Audio src={sonido("verter-masa")} from={T.verterAudio} name="Verter masa" />
-      <Sequence from={T.chisporroteo} durationInFrames={T.cambioPlato + 20 - T.chisporroteo} layout="none" name="Chisporroteo">
-        <Audio src={sonido("chisporroteo")} volume={(f) => interpolate(f, [0, 20, 310, 350], [0, 0.9, 0.9, 0], clamp)} />
-      </Sequence>
-      <Audio src={sonido("voltear")} from={T.voltearAudio} name="Voltear" />
-      <Audio src={sonido("plato")} from={T.platoAudio} name="Plato" />
-      <Audio src={sonido("temblor")} from={T.temblorAudio} name="Temblor" />
-      <Audio src={sonido("sirope")} from={T.siropeAudio} name="Sirope" />
+      {modo === "juego" ? <SonidosJuego /> : <SonidosReales />}
     </AbsoluteFill>
   );
 };
 
 export const PruebaASMRComposition: React.FC = () => (
-  <Composition id="Prueba-ASMR-pancakes" component={PruebaASMR} durationInFrames={T.total} fps={30} width={1920} height={1080} />
+  <>
+    <Composition id="Prueba-ASMR-pancakes" component={PruebaASMR} durationInFrames={T.total} fps={30} width={1920} height={1080} defaultProps={{ modo: "real" as const }} />
+    <Composition id="Prueba-juego-pancakes" component={PruebaASMR} durationInFrames={T.total} fps={30} width={1920} height={1080} defaultProps={{ modo: "juego" as const }} />
+  </>
 );

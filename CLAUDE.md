@@ -69,7 +69,10 @@ npx remotion render AprendeAContar out/aprende-a-contar.mp4
   composiciones `CocinaDulce-pancakes-vertical` / `-horizontal`). La coreografía (cursor, clics,
   tiempos) está en `pancakes/tiempos.ts`; los objetos (bol, sartén, plato, pancake) en `pancakes/Objetos.tsx`.
 - Sprites pixelados: `scripts/generar_sprites.py` (emoji → pixel art con contorno) → `public/sprites/`.
-- Sonidos: `scripts/generar_sfx_kawaii.py` → `public/audio/kawaii/`.
+- Sonidos: `scripts/generar_sfx_kawaii.py` → `public/audio/kawaii/`; sonidos de cocina estilo juego
+  (batir, plop, chisporroteo tierno, fwip, toc, tac de plato, boing esponjoso, gorgoteo, tintineo):
+  `scripts/generar_sfx_cocina_juego.py` → `public/audio/cocina-juego/`. Prueba: `Prueba-juego-pancakes`
+  (sonidos de juego + música baja) frente a `Prueba-ASMR-pancakes` (sonidos reales del banco).
 
 ## Banco de sonidos ASMR (`sonidos-asmr/`)
 
