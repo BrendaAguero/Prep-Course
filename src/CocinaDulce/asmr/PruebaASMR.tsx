@@ -303,7 +303,7 @@ const SonidosJuego: React.FC = () => (
       volume={(f) => interpolate(f, [0, 30, T.total - 45, T.total], [0, VOLUMEN_MUSICA, VOLUMEN_MUSICA, 0], clamp)}
     />
     <Audio src={juego("toc-huevo")} from={63} name="Toc huevo" />
-    <Audio src={kawaii("crack.wav")} from={T.crack} volume={0.8} name="Crack" />
+    <Audio src={juego("crack-suave")} from={T.crack} name="Crack" />
     <Audio src={juego("batir")} from={T.batir[0]} name="Batir" />
     {T.cucharadas.map((c, i) => (
       <Audio key={c} src={juego(`plop-${i + 1}`)} from={c} name={`Plop ${i + 1}`} />
@@ -321,7 +321,7 @@ const SonidosJuego: React.FC = () => (
       <Audio src={juego("gorgoteo")} loop />
     </Sequence>
     {T.fresas.map((f) => (
-      <Audio key={f} src={kawaii("pop.wav")} from={f} volume={0.4} name="Pop fresa" />
+      <Audio key={f} src={juego("plop-3")} from={f} volume={0.5} name="Plop fresa" />
     ))}
     <Audio src={juego("tintineo")} from={T.final} name="Tintineo" />
   </>
