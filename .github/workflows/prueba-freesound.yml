@@ -55,7 +55,7 @@ jobs:
           python scripts/freesound_descargar.py --ids "$SOUND_ID" --licencias cc0,by 2>&1 | tee descarga.log
           estado=${PIPESTATUS[0]}
           set -e
-          if grep -q "403" descarga.log; then
+          if [ "$estado" -eq 2 ] || grep -qE "bloqueado \(403 en|403 en (cdn\.)?freesound\.org" descarga.log; then
             echo "::error::Freesound devolvió 403 a GitHub Actions. Prueba detenida."
             exit 1
           fi
