@@ -1,0 +1,23 @@
+# Sonidos de Freesound rechazados: el script nunca los vuelve a descargar.
+# id | motivo
+635041 | contenido inapropiado
+706873 | contenido inapropiado
+706872 | contenido inapropiado
+431633 | bombo de batería
+99562 | bolera
+99563 | bolera
+864997 | golpe
+547522 | bajo el agua
+703994 | efecto musical
+703993 | efecto musical
+703992 | efecto musical
+792452 | máquina braille
+447719 | cristales rotos
+447716 | cristales rotos
+447715 | cristales rotos
+806795 | móvil
+850613 | voz
+128513 | no es de cocina
+704256 | cristales rotos
+704255 | cristales rotos
+217137 | no es un plato

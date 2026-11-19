@@ -51,11 +51,32 @@ EXCLUIR = {
 }
 
 
+RECHAZADOS = CARPETA / "rechazados.txt"  # "id | motivo": nunca se vuelven a descargar
+
+
+def rechazados() -> set[str]:
+    if not RECHAZADOS.exists():
+        return set()
+    ids = set()
+    for linea in RECHAZADOS.read_text(encoding="utf-8").splitlines():
+        linea = linea.split("#", 1)[0].strip()
+        if linea:
+            ids.add(linea.split("|", 1)[0].strip())
+    return ids
+
+
 def excluido(s: dict) -> str | None:
     texto = " ".join([s.get("name", "")] + list(s.get("tags") or [])).lower()
     palabras = set(re.findall(r"[a-z]+", texto))
     encontradas = sorted(palabras & EXCLUIR)
-    return encontradas[0] if encontradas else None
+    if encontradas:
+        return encontradas[0]
+    # palabras pegadas (p. ej. "GlassShards"): se buscan como fragmento las de 5+ letras
+    pegado = re.sub(r"[^a-z]", "", texto)
+    for p in sorted(EXCLUIR):
+        if len(p) >= 5 and p in pegado:
+            return p
+    return None
 # Licencias aceptadas: clave → (nombre del filtro en Freesound, fragmentos válidos de la URL, sufijo)
 LICENCIAS = {
     "cc0": ("Creative Commons 0", ["publicdomain/zero/1.0"]),
@@ -281,7 +302,7 @@ def main() -> int:
         ap.error("indica --buscar, --ids, --pedido o --catalogo")
 
     CARPETA.mkdir(parents=True, exist_ok=True)
-    vistos = ya_registrados()
+    vistos = ya_registrados() | rechazados()
     cuenta = {"ok": 0, "existe": 0, "saltado": 0, "error": 0}
 
     try:
