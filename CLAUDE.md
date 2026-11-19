@@ -68,6 +68,14 @@ npx remotion render AprendeAContar out/aprende-a-contar.mp4
 - Receta de referencia con el diseño final: `src/CocinaDulce/pancakes/` (pancakes japoneses,
   composiciones `CocinaDulce-pancakes-vertical` / `-horizontal`). La coreografía (cursor, clics,
   tiempos) está en `pancakes/tiempos.ts`; los objetos (bol, sartén, plato, pancake) en `pancakes/Objetos.tsx`.
+- **TikTok (receta completa, vertical):** `src/CocinaDulce/tiktok/` → composición
+  `TikTok-pancakes-japoneses` (~80 s). Sigue la receta original paso a paso (antes: ficha investigada
+  y aprobada). Estructura: gancho 2 s (resultado final) → menú → ingredientes con cantidades (el cursor
+  los marca) → 9 pasos con cinta "PASO n/9" y despensa con los ingredientes de cada paso → "¡Receta
+  completada!" + "Guarda la receta". Fuera de la ventana: cabecera "Fuwa Fuwa Kitchen", fondo Papel
+  vintage (fondo nº 14) y panel inferior con el paso y un truco de Nube. Sonidos de juego suaves + música
+  baja (≈0,3). La coreografía se escribe con el constructor de `tiktok/guion.ts` (ir, clic, coger,
+  girar, sacudir, marca, son; `TEMPO` global): las animaciones leen los eventos (`G.ev`).
 - Sprites pixelados: `scripts/generar_sprites.py` (emoji → pixel art con contorno) → `public/sprites/`.
 - Sonidos: `scripts/generar_sfx_kawaii.py` → `public/audio/kawaii/`; sonidos de cocina estilo juego
   (batir, plop, chisporroteo tierno, fwip, toc, tac de plato, boing esponjoso, gorgoteo, tintineo):

@@ -158,6 +158,74 @@ def tintineo() -> np.ndarray:
     return s
 
 
+def tamizar(dur: float = 2.0) -> np.ndarray:
+    """Tamiz sacudido: 'shh-shh' muy suave."""
+    s = np.zeros(int(dur * SR))
+    k = 0.0
+    while k < dur - 0.25:
+        sw = swish(0.2, 30) * 0.7
+        i = int(k * SR)
+        s[i:i + len(sw)] += sw[: len(s) - i]
+        k += 0.17
+    return s
+
+
+def espolvorear() -> np.ndarray:
+    """Azúcar que cae: lluvia de campanitas diminutas."""
+    s = np.zeros(int(0.9 * SR))
+    for _ in range(14):
+        x = t(0.12)
+        c = np.sin(2 * np.pi * nota(rng.integers(86, 98)) * x) * np.exp(-x / 0.03) * rng.uniform(0.2, 0.5)
+        i = int(rng.uniform(0, 0.7) * SR)
+        s[i:i + len(c)] += c[: len(s) - i]
+    return s
+
+
+def batidora(dur: float = 4.0) -> np.ndarray:
+    """Batidora eléctrica tierna: zumbido suave que ondula (en bucle)."""
+    x = t(dur)
+    f = 110 + 6 * np.sin(2 * np.pi * 0.7 * x)
+    fase = 2 * np.pi * np.cumsum(f) / SR
+    zumbido = np.sin(fase) + 0.5 * np.sin(2 * fase) + 0.25 * np.sin(3 * fase)
+    return zumbido * (0.8 + 0.2 * np.sin(2 * np.pi * 3 * x)) + ruido_filtrado(len(x), 60) * 0.3
+
+
+def tapa() -> np.ndarray:
+    """Tapa de cristal: 'tiin' grave y redondo."""
+    x = t(1.0)
+    return sum(a * np.sin(2 * np.pi * f * x) * np.exp(-x / d) for f, a, d in [(nota(76), 1.0, 0.3), (nota(83), 0.3, 0.2), (nota(64), 0.4, 0.12)])
+
+
+def agua_puff() -> np.ndarray:
+    """Agua en la sartén caliente: 'pfff' suave de vapor."""
+    x = t(0.9)
+    env = np.minimum(1, x / 0.05) * np.exp(-x / 0.3)
+    return ruido_filtrado(len(x), 25) * env
+
+
+def tictac(dur: float = 3.0, ritmo: float = 6.0) -> np.ndarray:
+    """Reloj acelerado: tic-tac de madera suave."""
+    s = np.zeros(int(dur * SR))
+    k = 0
+    while k / ritmo < dur - 0.1:
+        c = toc(700 if k % 2 else 560, 0.02) * 0.6
+        i = int(k / ritmo * SR)
+        s[i:i + len(c)] += c[: len(s) - i]
+        k += 1
+    return s
+
+
+def check() -> np.ndarray:
+    """Marcar un ingrediente: dos notitas ascendentes."""
+    s = np.zeros(int(0.45 * SR))
+    for k, m in enumerate([84, 91]):
+        x = t(0.3)
+        c = np.sin(2 * np.pi * nota(m) * x) * np.exp(-x / 0.1)
+        i = int(k * 0.08 * SR)
+        s[i:i + len(c)] += c[: len(s) - i]
+    return s
+
+
 def main() -> None:
     SALIDA.mkdir(parents=True, exist_ok=True)
     # (señal, pico, corte de agudos Hz): todo filtrado y con volumen moderado para que suene suavecito
@@ -175,6 +243,13 @@ def main() -> None:
         "boing-esponjoso": (boing_esponjoso(), 0.5, 1500),
         "gorgoteo": (gorgoteo(), 0.3, 2000),
         "tintineo": (tintineo(), 0.32, 4000),
+        "tamizar": (tamizar(), 0.25, 2200),
+        "espolvorear": (espolvorear(), 0.3, 4000),
+        "batidora": (batidora(), 0.22, 1600),
+        "tapa": (tapa(), 0.3, 3000),
+        "agua-puff": (agua_puff(), 0.22, 2200),
+        "tictac": (tictac(), 0.28, 2500),
+        "check": (check(), 0.3, 4000),
     }
     for nombre, (senal, pico, corte) in sonidos.items():
         guardar_wav(SALIDA / f"{nombre}.wav", suavizar(senal, corte), pico=pico)

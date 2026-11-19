@@ -24,6 +24,7 @@ SPRITES = {
     "corazon": ("💗", 16),
     "huevo": ("🥚", 24),
     "leche": ("🥛", 24),
+    "agua": ("💧", 22),
 }
 
 
@@ -71,11 +72,61 @@ def saco_harina(lado: int = 24) -> Image.Image:
     return final
 
 
+def con_contorno(im: Image.Image) -> Image.Image:
+    a = im.split()[3]
+    borde = a.filter(ImageFilter.MaxFilter(3))
+    final = Image.new("RGBA", im.size)
+    final.paste(Image.new("RGBA", im.size, CONTORNO), (0, 0), borde)
+    final.paste(im, (0, 0), im)
+    return final
+
+
+def botella(liquido: tuple, tapon: tuple, etiqueta: tuple, lado: int = 24) -> Image.Image:
+    """Botellita dibujada a mano (vainilla, aceite)."""
+    im = Image.new("RGBA", (lado, lado))
+    d = ImageDraw.Draw(im)
+    d.rectangle((10, 2, 13, 5), fill=tapon)
+    d.rectangle((10, 6, 13, 8), fill=(235, 240, 245, 255))
+    d.rounded_rectangle((6, 8, 17, 22), radius=3, fill=(235, 240, 245, 255))
+    d.rounded_rectangle((7, 11, 16, 21), radius=2, fill=liquido)
+    d.rectangle((8, 14, 15, 18), fill=etiqueta)
+    d.point([(8, 9), (8, 10)], fill=(255, 255, 255, 255))
+    return con_contorno(im)
+
+
+def bolsa(color: tuple, cinta: tuple, lado: int = 24) -> Image.Image:
+    """Bolsita de azúcar."""
+    im = Image.new("RGBA", (lado, lado))
+    d = ImageDraw.Draw(im)
+    d.polygon([(6, 5), (17, 5), (19, 21), (4, 21)], fill=color)
+    d.rectangle((6, 3, 17, 5), fill=cinta)
+    d.rectangle((8, 10, 15, 16), fill=(255, 255, 255, 255))
+    for x, y in [(10, 12), (13, 13), (11, 14)]:
+        d.point((x, y), fill=(200, 210, 230, 255))
+    return con_contorno(im)
+
+
+def lata(color: tuple, lado: int = 24) -> Image.Image:
+    """Latita de polvo de hornear."""
+    im = Image.new("RGBA", (lado, lado))
+    d = ImageDraw.Draw(im)
+    d.rectangle((6, 6, 17, 21), fill=color)
+    d.rectangle((5, 4, 18, 6), fill=(210, 210, 220, 255))
+    d.rectangle((7, 11, 16, 16), fill=(255, 250, 235, 255))
+    d.point([(9, 13), (11, 13), (13, 13), (10, 14), (12, 14)], fill=color)
+    d.line([(7, 8), (7, 20)], fill=(255, 255, 255, 120))
+    return con_contorno(im)
+
+
 def main() -> None:
     SALIDA.mkdir(parents=True, exist_ok=True)
     for nombre, (emoji, lado) in SPRITES.items():
         sprite(emoji, lado).save(SALIDA / f"{nombre}.png")
     saco_harina().save(SALIDA / "harina.png")
+    botella((150, 90, 50, 255), (120, 70, 40, 255), (255, 240, 210, 255)).save(SALIDA / "vainilla.png")
+    botella((240, 200, 90, 255), (110, 160, 80, 255), (255, 250, 230, 255)).save(SALIDA / "aceite.png")
+    bolsa((170, 205, 240, 255), (238, 124, 156, 255)).save(SALIDA / "azucar.png")
+    lata((238, 124, 156, 255)).save(SALIDA / "polvo.png")
     print(f"{len(SPRITES)} sprites en {SALIDA}")
 
 
