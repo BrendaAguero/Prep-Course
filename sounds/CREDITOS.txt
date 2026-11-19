@@ -41,6 +41,8 @@ Atribución obligatoria (Creative Commons Attribution):
 - "Bird Morning.wav" de rivernile7 (https://freesound.org/people/rivernile7/sounds/237686/), CC BY 3.0 – http://creativecommons.org/licenses/by/3.0/
 - "Baking bread (SoundAction 052)" de alexarje (https://freesound.org/people/alexarje/sounds/721734/), CC BY 4.0 – https://creativecommons.org/licenses/by/4.0/
 - "Paper shoping bag" de MaslovyTygr (https://freesound.org/people/MaslovyTygr/sounds/736126/), CC BY 4.0 – https://creativecommons.org/licenses/by/4.0/
+- "FX_Stirring_Yogurt_01.wav" de PeteBarry (https://freesound.org/people/PeteBarry/sounds/474041/), CC BY 4.0 – https://creativecommons.org/licenses/by/4.0/
+- "CERMMisc-Blue Snowball Microphone, CU_Ceramic Plate, Spinning, Long_Nicholas Judy_TDC" de designerschoice (https://freesound.org/people/designerschoice/sounds/805315/), CC BY 4.0 – https://creativecommons.org/licenses/by/4.0/
 
 Dominio público (CC0), créditos por cortesía:
 - "egg - crack 01.wav" de Anthousai (https://freesound.org/people/Anthousai/sounds/336613/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
@@ -142,3 +144,10 @@ Dominio público (CC0), créditos por cortesía:
 - "Glass Bowl Set" de amholma (https://freesound.org/people/amholma/sounds/344362/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
 - "Tub o' Dishes, Distant" de CHallSmith (https://freesound.org/people/CHallSmith/sounds/870731/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
 - "Glass Clink" de Nightflame (https://freesound.org/people/Nightflame/sounds/397597/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
+- "Jelly Wobbling on Plate 1.wav" de lolamadeus (https://freesound.org/people/lolamadeus/sounds/181914/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
+- "Jelly Falling Onto Plate 2.wav" de lolamadeus (https://freesound.org/people/lolamadeus/sounds/181911/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
+- "Jelly Falling Onto Plate 3.wav" de lolamadeus (https://freesound.org/people/lolamadeus/sounds/181910/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
+- "Oil cooking on pan FOODCook.wav" de JoshvanHansen (https://freesound.org/people/JoshvanHansen/sounds/538705/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
+- "Spilling thick liquid.wav" de Perplessio (https://freesound.org/people/Perplessio/sounds/505983/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
+- "Viscous_Liquid_detergentbottle.aif" de kbnevel (https://freesound.org/people/kbnevel/sounds/119863/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
+- "House_condiment bottle_ketchup.aif" de vrodge (https://freesound.org/people/vrodge/sounds/119532/), CC0 1.0 – http://creativecommons.org/publicdomain/zero/1.0/
