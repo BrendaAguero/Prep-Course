@@ -41,7 +41,21 @@ RAIZ = Path(__file__).resolve().parent.parent
 CARPETA = RAIZ / "sounds"
 CREDITOS = CARPETA / "creditos.csv"
 API = "https://freesound.org/apiv2"
-CAMPOS = "id,name,username,license,duration,previews,url"
+CAMPOS = "id,name,username,license,duration,previews,url,tags"
+# Palabras que descartan un sonido si aparecen en su título o etiquetas (contenido inapropiado o
+# que no es de cocina). Ampliable.
+EXCLUIR = {
+    "blowjob", "sex", "sexy", "porn", "moan", "orgasm", "nsfw", "erotic", "blood", "gore", "gun",
+    "kick", "punch", "drum", "music", "song", "guitar", "synth", "reverb", "fuzz", "wah", "bowling",
+    "underwater", "shards", "smartphone", "braille", "voice", "speech", "talking", "scream",
+}
+
+
+def excluido(s: dict) -> str | None:
+    texto = " ".join([s.get("name", "")] + list(s.get("tags") or [])).lower()
+    palabras = set(re.findall(r"[a-z]+", texto))
+    encontradas = sorted(palabras & EXCLUIR)
+    return encontradas[0] if encontradas else None
 # Licencias aceptadas: clave → (nombre del filtro en Freesound, fragmentos válidos de la URL, sufijo)
 LICENCIAS = {
     "cc0": ("Creative Commons 0", ["publicdomain/zero/1.0"]),
@@ -142,6 +156,18 @@ def info(sid: str) -> dict:
     return pedir(f"{API}/sounds/{sid}/?fields={CAMPOS}")
 
 
+def por_accion() -> dict[str, int]:
+    """Cuántos sonidos tiene ya cada acción según creditos.csv."""
+    if not CREDITOS.exists():
+        return {}
+    cuenta: dict[str, int] = {}
+    with CREDITOS.open(encoding="utf-8") as f:
+        for fila in csv.DictReader(f):
+            if fila.get("accion") and (CARPETA / fila["archivo"]).exists():
+                cuenta[fila["accion"]] = cuenta.get(fila["accion"], 0) + 1
+    return cuenta
+
+
 def ya_registrados() -> set[str]:
     if not CREDITOS.exists():
         return set()
@@ -190,6 +216,9 @@ def descargar(s: dict, consulta: str, licencias: list[str], accion: str = "") ->
     lic = tipo_licencia(s.get("license", ""))
     if not permitida(lic, licencias):
         return f"licencia no permitida ({s.get('license')})"
+    palabra = excluido(s)
+    if palabra:
+        return f"excluido por la palabra '{palabra}'"
     url = (s.get("previews") or {}).get("preview-hq-mp3")
     if not url:
         return "sin preview-hq-mp3"
@@ -264,21 +293,24 @@ def main() -> int:
             trabajo.append((info(sid), f"id:{sid}", ""))
         # Catálogo: por cada acción se prueban sus búsquedas en orden hasta reunir --cantidad sonidos.
         elegidos: set[str] = set(vistos)
+        existentes = por_accion()
         for accion, busquedas in catalogo:
-            reunidos = 0
+            reunidos = existentes.get(accion, 0)  # solo se completa lo que falta
+            if reunidos >= a.cantidad:
+                continue
             for c in busquedas:
                 if reunidos >= a.cantidad:
                     break
                 for s in buscar(c, a.cantidad * 3, a.dur_min, a.dur_max, licencias):
                     sid = str(s["id"])
-                    if sid in elegidos or not permitida(tipo_licencia(s.get("license", "")), licencias):
+                    if sid in elegidos or not permitida(tipo_licencia(s.get("license", "")), licencias) or excluido(s):
                         continue
                     elegidos.add(sid)
                     trabajo.append((s, c, accion))
                     reunidos += 1
                     if reunidos >= a.cantidad:
                         break
-            print(f"· {accion}: {reunidos} sonidos")
+            print(f"· {accion}: {reunidos} sonidos ({reunidos - existentes.get(accion, 0)} nuevos)")
     except Bloqueado as e:
         print(f"✗ Freesound rechaza las conexiones desde esta máquina ({e}).", file=sys.stderr)
         print("  No es un fallo del código: hay que ejecutar este script desde otra red.", file=sys.stderr)
