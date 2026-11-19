@@ -167,7 +167,7 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
   const sp = (f: number, damping = 10) => spring({ frame: frame - f, fps, config: { damping } });
 
   // ----- Bol de yemas
-  const yemas = (frame >= E.huevo1 + 8 ? 1 : 0) + (frame >= E.huevo2 + 8 ? 1 : 0);
+  const yemas = frame >= E.huevo1 + 8 ? 2 : 0;
   const leche = prog(frame, E.leche, E.leche + 28);
   const batidoY = prog(frame, E.batirY, E.batirYfin);
   const harina = prog(frame, E.tamiz1, E.tamizFin);
@@ -181,7 +181,7 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
   const yR = YEMAS.y - 70;
 
   // ----- Bol de claras
-  const claras = (frame >= E.huevo1 + 10 ? 1 : 0) + (frame >= E.huevo2 + 10 ? 1 : 0);
+  const claras = frame >= E.huevo1 + 10 ? 2 : 0;
   const congelado = prog(frame, E.congelar, E.congelar + 15) * (1 - prog(frame, E.paso1, E.paso1 + 15));
   const espuma = prog(frame, E.batidora, E.picos);
   const tomado = (frame >= E.toma1 ? 1 : 0) + (frame >= E.toma2 ? 1 : 0);
@@ -238,7 +238,7 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
             }
           >
             {frame >= E.huevo1 - 4 &&
-              [E.huevo1, E.huevo2].map((h) => {
+              [E.huevo1].map((h) => {
                 const t = frame - h;
                 if (t < 0 || t > 14) return null;
                 return (
@@ -268,10 +268,7 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
             }
             encima={
               <>
-                {espumaVisible > 0 && <Nubes x={CLARAS.x} y={cR + 10 - 30 * espumaVisible} tam={60 * espumaVisible} />}
-                {frame >= E.picos && tomado < 2 && (
-                  <path d={`M${CLARAS.x - 24} ${cR - 40} Q ${CLARAS.x} ${cR - 120} ${CLARAS.x + 14} ${cR - 130} Q ${CLARAS.x + 4} ${cR - 90} ${CLARAS.x + 26} ${cR - 40} Z`} fill="#FFFFFF" stroke="#EADBC3" strokeWidth={3} />
-                )}
+                {espumaVisible > 0 && <Merengue x={CLARAS.x} rimY={cR} s={espumaVisible} firmes={frame >= E.picos ? 1 : prog(frame, E.picos - 40, E.picos)} />}
                 {congelado > 0 && <ellipse cx={CLARAS.x} cy={cR} rx={190} ry={50} fill="#BFE3FA" opacity={0.45 * congelado} />}
               </>
             }
@@ -279,12 +276,27 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
           {congelado > 0 && (
             <div style={{ position: "absolute", left: CLARAS.x - 40, top: 470, fontSize: 70, opacity: congelado, transform: `rotate(${frame * 3}deg)` }}>❄️</div>
           )}
+          {frame >= E.huevo1 - 30 && frame < E.huevo1 + 40 && (
+            <div style={{ position: "absolute", left: YEMAS.x + 70, top: 470, fontFamily: C.redonda, fontSize: 64, ...texto(p, p.acento, 10) }}>×2</div>
+          )}
+          {[1, 2, 3].map((k) =>
+            frame >= E[`azucar${k}`] && frame < E[`azucar${k}`] + 22 ? (
+              <div key={`l${k}`} style={{ position: "absolute", left: CLARAS.x + 110, top: 470 - (frame - E[`azucar${k}`]) * 1.5, fontFamily: C.redonda, fontSize: 56, ...texto(p, p.acento, 9) }}>
+                {k}/3
+              </div>
+            ) : null,
+          )}
+          {frame >= E.batidora && frame < E.paso4 && (
+            <Chip p={p} x={CLARAS.x - 150} y={400}>
+              {espuma < 0.3 ? "Espumoso" : espuma < 0.85 ? "Picos suaves" : "¡Picos firmes! ✓"}
+            </Chip>
+          )}
           {/* chorro de leche */}
           {frame >= E.leche && frame < E.leche + 30 && (
             <div style={{ position: "absolute", left: cursor.x - 70, top: cursor.y - 10, width: 14, height: yR * 1 - cursor.y + 120, borderRadius: 7, backgroundColor: "#FFFFFFEE", border: "3px solid #EADCE4" }} />
           )}
           {/* harina cayendo del tamiz */}
-          {((frame >= E.tamiz1 && frame < E.tamiz2 - 10) || (frame >= E.tamiz2 && frame < E.tamizFin)) &&
+          {frame >= E.tamiz1 && frame < E.tamizFin &&
             Array.from({ length: 16 }).map((_, i) => {
               const t = (frame * 3 + i * 13) % 50;
               return <div key={i} style={{ position: "absolute", left: cursor.x - 60 + ((i * 17) % 120), top: cursor.y + 30 + t * 2.4, width: 9, height: 9, borderRadius: 5, backgroundColor: "#FFFFFF", opacity: 1 - t / 50 }} />;
@@ -405,6 +417,43 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
         </div>
       )}
     </AbsoluteFill>
+  );
+};
+
+/** Merengue: montaña blanca y brillante que crece; con "firmes" aparecen picos con punta curvada. */
+const Merengue: React.FC<{ x: number; rimY: number; s: number; firmes: number }> = ({ x, rimY, s, firmes }) => {
+  const w = 60 + 140 * s;
+  const h = 20 + 120 * s;
+  const top = rimY - h;
+  const sombra = "#E8DCE6";
+  const borde2 = "#CDBBC9";
+  return (
+    <g>
+      <path
+        d={`M${x - w} ${rimY + 12} C ${x - w} ${rimY - h * 0.55}, ${x - w * 0.45} ${top}, ${x} ${top} C ${x + w * 0.45} ${top}, ${x + w} ${rimY - h * 0.55}, ${x + w} ${rimY + 12} Z`}
+        fill="#FFFFFF"
+        stroke={borde2}
+        strokeWidth={5}
+      />
+      <path d={`M${x - w * 0.85} ${rimY + 8} C ${x - w * 0.6} ${rimY - h * 0.2}, ${x + w * 0.5} ${rimY - h * 0.15}, ${x + w * 0.85} ${rimY + 8} Z`} fill={sombra} opacity={0.8} />
+      {[-0.5, 0.05, 0.55].map((dx, i) => {
+        const ph = (30 + 40 * (i === 1 ? 1.4 : 1)) * firmes * s;
+        if (ph < 2) return null;
+        const bx = x + dx * w;
+        const by = top + (i === 1 ? 6 : 26) * s;
+        return (
+          <path
+            key={i}
+            d={`M${bx - 26} ${by + 10} Q ${bx - 4} ${by - ph * 0.6} ${bx + 6} ${by - ph} Q ${bx + 20} ${by - ph - 8} ${bx + 14} ${by - ph + 14} Q ${bx + 10} ${by - ph * 0.4} ${bx + 26} ${by + 10} Z`}
+            fill="#FFFFFF"
+            stroke={borde2}
+            strokeWidth={4}
+          />
+        );
+      })}
+      <ellipse cx={x - w * 0.35} cy={top + h * 0.3} rx={w * 0.18} ry={h * 0.12} fill="#FFFFFF" stroke="none" />
+      <path d={`M${x - w * 0.5} ${top + h * 0.35} Q ${x - w * 0.3} ${top + h * 0.12} ${x - w * 0.05} ${top + h * 0.1}`} stroke="#F6F0FA" strokeWidth={8} fill="none" strokeLinecap="round" />
+    </g>
   );
 };
 
