@@ -39,7 +39,8 @@ export const pasoActual = (frame: number) => {
 const Utensilio: React.FC<{ p: Paleta; que: string; frame: number }> = ({ p, que, frame }) => {
   switch (que) {
     case "varillas":
-      return <div style={{ position: "absolute", left: -10, top: 30 }}><Batidor p={p} x={0} y={0} rot={Math.sin(frame / 2) * 12} /></div>;
+      // la mano sujeta el mango; las varillas bajan ~150 px hasta la mezcla
+      return <div style={{ position: "absolute", left: 0, top: 0 }}><Batidor p={p} x={0} y={150} rot={Math.sin(frame / 2) * 8} /></div>;
     case "batidora":
       return (
         <svg width={170} height={230} viewBox="-85 -20 170 230" style={{ position: "absolute", left: -85, top: -150, transform: `rotate(${Math.sin(frame) * 2}deg)` }}>
@@ -184,8 +185,13 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
   const claras = frame >= E.huevo1 + 10 ? 2 : 0;
   const congelado = prog(frame, E.congelar, E.congelar + 15) * (1 - prog(frame, E.paso1, E.paso1 + 15));
   const espuma = prog(frame, E.batidora, E.picos);
-  const tomado = (frame >= E.toma1 ? 1 : 0) + (frame >= E.toma2 ? 1 : 0);
-  const espumaVisible = espuma * (1 - tomado * 0.33);
+  const t1 = E.batidora + 0.3 * (E.picos - E.batidora);
+  const t2 = E.batidora + 0.85 * (E.picos - E.batidora);
+  const quita1 = frame >= E.toma1 ? sp(E.toma1, 14) : 0; // se lleva 1/3: desaparecen las vueltas de arriba
+  const quita2 = frame >= E.toma2 ? sp(E.toma2, 14) : 0; // se vierte el resto
+  const v1C = (frame >= t1 ? sp(t1, 11) : 0) * (1 - quita2);
+  const v2C = (frame >= t2 ? sp(t2, 11) : 0) * (1 - quita1);
+  const espumaC = frame >= E.batidora ? 1 - quita2 * 0.85 : 0;
   const cR = CLARAS.y - 70;
 
   const dxBoles = interpolate(frame, [E.salenBoles, E.salenBoles + 18], [0, -1300], { ...clamp, easing: Easing.in(Easing.quad) });
@@ -231,10 +237,17 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
                   Array.from({ length: yemas }).map((_, i) => <circle key={i} cx={YEMAS.x - 30 + i * 60} cy={yR + 14} r={24} fill="#FFC83D" stroke="#E8A63A" strokeWidth={4} />)}
                 {[0, 1, 2].map((i) => (frame >= E[`vainilla${i}`] && batidoY < 0.4 ? <circle key={i} cx={YEMAS.x + 30 + i * 18} cy={yR + 6 + i * 6} r={6} fill="#8A5A3A" /> : null))}
                 {harina > 0 && lisa < 1 && <ellipse cx={YEMAS.x} cy={yR + 4} rx={90 * harina * (1 - lisa)} ry={26 * harina * (1 - lisa)} fill="#FFFFFF" />}
-                {merengueEnY > 0 && envuelto < 1 && <Nubes x={YEMAS.x - 20} y={yR + 6} tam={40 * merengueEnY * (1 - envuelto)} />}
+
                 {envuelto > 0 && envuelto < 1 &&
                   [0, 1, 2].map((i) => <path key={i} d={`M${YEMAS.x - 120} ${yR + 10 + i * 10} q 60 -16 120 0 t 120 0`} stroke="#FFFFFF" strokeWidth={6 * (1 - envuelto)} fill="none" />)}
               </>
+            }
+            encima={
+              merengueEnY > 0 && envuelto < 1 ? (
+                <g opacity={1 - envuelto}>
+                  <Remolino x={YEMAS.x} rimY={yR + 10} v1={(frame >= E.deja1 ? sp(E.deja1, 10) : 0) * 0.8} v2={(frame >= E.deja2 ? sp(E.deja2, 10) : 0) * 0.7} burbujas={0} base={0} />
+                </g>
+              ) : null
             }
           >
             {frame >= E.huevo1 - 4 &&
@@ -263,12 +276,12 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
             b={CLARAS}
             contenido={
               <>
-                {claras > 0 && <ellipse cx={CLARAS.x} cy={cR + 18} rx={100 + 30 * claras} ry={22 + 6 * claras} fill={interpolateColors(espuma, [0, 1], ["#F3F6F8", "#FFFFFF"])} stroke="#E3E8EC" strokeWidth={3} />}
+                {claras > 0 && frame < E.batidora && <ellipse cx={CLARAS.x} cy={cR + 18} rx={100 + 30 * claras} ry={22 + 6 * claras} fill="#F3F6F8" stroke="#E3E8EC" strokeWidth={3} />}
               </>
             }
             encima={
               <>
-                {espumaVisible > 0 && <Merengue x={CLARAS.x} rimY={cR} s={espumaVisible} firmes={frame >= E.picos ? 1 : prog(frame, E.picos - 40, E.picos)} />}
+                {espumaC > 0 && <Remolino x={CLARAS.x} rimY={cR} v1={v1C} v2={v2C} burbujas={(1 - Math.min(1, v1C * 1.5)) * (1 - quita1)} base={espumaC} />}
                 {congelado > 0 && <ellipse cx={CLARAS.x} cy={cR} rx={190} ry={50} fill="#BFE3FA" opacity={0.45 * congelado} />}
               </>
             }
@@ -420,39 +433,46 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
   );
 };
 
-/** Merengue: montaña blanca y brillante que crece; con "firmes" aparecen picos con punta curvada. */
-const Merengue: React.FC<{ x: number; rimY: number; s: number; firmes: number }> = ({ x, rimY, s, firmes }) => {
-  const w = 60 + 140 * s;
-  const h = 20 + 120 * s;
-  const top = rimY - h;
-  const sombra = "#E8DCE6";
-  const borde2 = "#CDBBC9";
+/**
+ * Merengue en remolino (tipo helado suave), dibujado en las coordenadas de la maqueta aprobada
+ * (boca del bol en (200, 170), rx 170) y escalado a la boca real del bol (x, rimY).
+ * v1 = primera vuelta, v2 = vueltas superiores + punta (0–1); burbujas = espuma inicial.
+ */
+const Remolino: React.FC<{ x: number; rimY: number; v1: number; v2: number; burbujas: number; base?: number }> = ({ x, rimY, v1, v2, burbujas, base = 1 }) => {
+  const BORDE = "#C9B3C4";
+  const SOMBRA = "#E6D8E6";
+  const vuelta = (cx: number, cy: number, rx: number, h: number, dx: number, k: number) =>
+    k > 0.02 ? (
+      <g transform={`translate(${cx + dx} ${cy}) scale(${k}) translate(${-(cx + dx)} ${-cy})`}>
+        <path
+          d={`M${cx - rx + dx} ${cy} C ${cx - rx + dx} ${cy - h * 1.15}, ${cx + rx + dx} ${cy - h * 1.15}, ${cx + rx + dx} ${cy} C ${cx + rx + dx} ${cy + h * 0.55}, ${cx - rx + dx} ${cy + h * 0.55}, ${cx - rx + dx} ${cy} Z`}
+          fill="#FFFFFF"
+          stroke={BORDE}
+          strokeWidth={4.5}
+        />
+        <path d={`M${cx - rx * 0.8 + dx} ${cy + h * 0.18} Q ${cx + dx} ${cy + h * 0.62} ${cx + rx * 0.8 + dx} ${cy + h * 0.18}`} stroke={SOMBRA} strokeWidth={8} fill="none" strokeLinecap="round" />
+        <path d={`M${cx - rx * 0.55 + dx} ${cy - h * 0.55} Q ${cx - rx * 0.2 + dx} ${cy - h * 0.78} ${cx + rx * 0.15 + dx} ${cy - h * 0.8}`} stroke="#FFFFFF" strokeWidth={7} fill="none" strokeLinecap="round" />
+      </g>
+    ) : null;
   return (
-    <g>
-      <path
-        d={`M${x - w} ${rimY + 12} C ${x - w} ${rimY - h * 0.55}, ${x - w * 0.45} ${top}, ${x} ${top} C ${x + w * 0.45} ${top}, ${x + w} ${rimY - h * 0.55}, ${x + w} ${rimY + 12} Z`}
-        fill="#FFFFFF"
-        stroke={borde2}
-        strokeWidth={5}
-      />
-      <path d={`M${x - w * 0.85} ${rimY + 8} C ${x - w * 0.6} ${rimY - h * 0.2}, ${x + w * 0.5} ${rimY - h * 0.15}, ${x + w * 0.85} ${rimY + 8} Z`} fill={sombra} opacity={0.8} />
-      {[-0.5, 0.05, 0.55].map((dx, i) => {
-        const ph = (30 + 40 * (i === 1 ? 1.4 : 1)) * firmes * s;
-        if (ph < 2) return null;
-        const bx = x + dx * w;
-        const by = top + (i === 1 ? 6 : 26) * s;
-        return (
-          <path
-            key={i}
-            d={`M${bx - 26} ${by + 10} Q ${bx - 4} ${by - ph * 0.6} ${bx + 6} ${by - ph} Q ${bx + 20} ${by - ph - 8} ${bx + 14} ${by - ph + 14} Q ${bx + 10} ${by - ph * 0.4} ${bx + 26} ${by + 10} Z`}
-            fill="#FFFFFF"
-            stroke={borde2}
-            strokeWidth={4}
-          />
-        );
-      })}
-      <ellipse cx={x - w * 0.35} cy={top + h * 0.3} rx={w * 0.18} ry={h * 0.12} fill="#FFFFFF" stroke="none" />
-      <path d={`M${x - w * 0.5} ${top + h * 0.35} Q ${x - w * 0.3} ${top + h * 0.12} ${x - w * 0.05} ${top + h * 0.1}`} stroke="#F6F0FA" strokeWidth={8} fill="none" strokeLinecap="round" />
+    <g transform={`translate(${x} ${rimY}) scale(${200 / 170}) translate(-200 -170)`}>
+      {base > 0.02 && <ellipse cx={200} cy={176} rx={158 * base} ry={38 * base} fill="#FFFFFF" stroke={BORDE} strokeWidth={4} />}
+      {burbujas > 0.02 &&
+        Array.from({ length: 14 }).map((_, i) => (
+          <circle key={i} cx={70 + ((i * 53) % 260)} cy={170 + ((i * 17) % 14)} r={5 + (i % 3) * 3} fill="none" stroke={BORDE} strokeWidth={2.5} opacity={burbujas} />
+        ))}
+      {vuelta(200, 168, 128, 44, 0, v1)}
+      {v1 > 0.5 && v2 < 0.3 && (
+        <path d="M168 136 C 172 100, 196 92, 214 96 C 204 108, 212 122, 222 134 Z" fill="#FFFFFF" stroke={BORDE} strokeWidth={4} opacity={Math.min(1, (v1 - 0.5) * 2) * (1 - v2 / 0.3)} />
+      )}
+      {vuelta(200, 126, 96, 40, -10, v2)}
+      {vuelta(200, 90, 64, 34, 8, v2)}
+      {v2 > 0.6 && (
+        <g opacity={(v2 - 0.6) / 0.4}>
+          <path d="M180 72 C 178 40, 204 20, 240 6 C 226 30, 220 44, 228 58 C 232 70, 222 80, 204 82 Z" fill="#FFFFFF" stroke={BORDE} strokeWidth={4.5} />
+          <path d="M200 64 C 204 46, 216 32, 232 18" stroke={SOMBRA} strokeWidth={5} fill="none" strokeLinecap="round" />
+        </g>
+      )}
     </g>
   );
 };

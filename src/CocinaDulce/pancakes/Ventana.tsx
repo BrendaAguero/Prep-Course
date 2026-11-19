@@ -461,7 +461,7 @@ const PantallaCocina: React.FC<{ p: Paleta }> = ({ p }) => {
             />
           );
         })}
-      {frame >= T.batir[0] - 5 && frame < T.pasos[2].fin && <Batidor p={p} x={cursor.x} y={cursor.y + 40} rot={Math.sin(frame / 2) * 12} />}
+      {frame >= T.batir[0] - 5 && frame < T.pasos[2].fin && <Batidor p={p} x={cursor.x} y={cursor.y + 70} rot={Math.sin(frame / 2) * 8} />}
 
       {/* Sonidos de la cocina */}
       {T.cascar.map((c) => (

@@ -137,7 +137,7 @@ const Escena: React.FC<{ modo: Modo }> = ({ modo }) => {
             </div>
           )}
           {frame >= T.batir[0] - 4 && frame < T.batir[1] && (
-            <Batidor p={P} x={X + Math.cos(ang) * 110} y={Y - 30 + Math.sin(ang) * 26} rot={Math.sin(ang) * 14} />
+            <Batidor p={P} x={X + Math.cos(ang) * 90} y={Y - 40 + Math.sin(ang) * 18} rot={Math.sin(ang) * 8} />
           )}
         </div>
       )}

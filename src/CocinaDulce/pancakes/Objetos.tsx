@@ -122,16 +122,17 @@ export const Plato: React.FC<{ p: Paleta; x: number; y: number }> = ({ p, x, y }
 );
 
 /** Batidor de varillas (para llevar en la mano). */
+/** Batidor de varillas: mango arriba (donde va la mano) y varillas abajo. (x, y) = punta de las varillas. */
 export const Batidor: React.FC<{ p: Paleta; x: number; y: number; rot: number }> = ({ p, x, y, rot }) => (
-  <svg width={120} height={200} viewBox="-60 -10 120 200" style={{ position: "absolute", left: x - 60, top: y - 170, transform: `rotate(${rot}deg)`, transformOrigin: "50% 90%" }}>
+  <svg width={120} height={200} viewBox="-60 -10 120 200" style={{ position: "absolute", left: x - 60, top: y - 196, transform: `rotate(${rot}deg)`, transformOrigin: "50% 12%" }}>
     {[-26, -12, 0, 12, 26].map((dx) => (
-      <path key={dx} d={`M0 120 C ${dx * 1.6} 90, ${dx * 1.8} 20, 0 0`} stroke="#C9C1C8" strokeWidth={6} fill="none" />
+      <path key={dx} d={`M0 66 C ${dx * 1.8} 100, ${dx * 1.6} 172, 0 186`} stroke="#C9C1C8" strokeWidth={6} fill="none" />
     ))}
     {[-26, -12, 0, 12, 26].map((dx) => (
-      <path key={`o${dx}`} d={`M0 120 C ${dx * 1.6} 90, ${dx * 1.8} 20, 0 0`} stroke={p.contorno} strokeWidth={2} fill="none" opacity={0.5} />
+      <path key={`o${dx}`} d={`M0 66 C ${dx * 1.8} 100, ${dx * 1.6} 172, 0 186`} stroke={p.contorno} strokeWidth={2} fill="none" opacity={0.5} />
     ))}
-    <rect x={-14} y={116} width={28} height={70} rx={14} fill={p.ui} stroke={p.contorno} strokeWidth={5} />
-    <rect x={-8} y={126} width={6} height={40} rx={3} fill="#FFFFFF88" />
+    <rect x={-14} y={0} width={28} height={70} rx={14} fill={p.ui} stroke={p.contorno} strokeWidth={5} />
+    <rect x={-8} y={10} width={6} height={40} rx={3} fill="#FFFFFF88" />
   </svg>
 );
 

@@ -142,7 +142,7 @@ INGREDIENTES.forEach((_, i) => {
   if (i > 0) g.ir(tarjeta(i).x, tarjeta(i).y, 13);
   g.marca(`ing${i}`).clic("check");
 });
-g.ir(BOTON_COCINAR.x, BOTON_COCINAR.y, 18).quieto(6).marca("clicCocinar").clic().quieto(12).marca("cortina2").quieto(16);
+g.ir(BOTON_COCINAR.x, BOTON_COCINAR.y, 18).quieto(6).marca("clicCocinar").clic().quieto(12).marca("cortina2");
 
 // Cada paso dura al menos lo que se tarda en leer su truco (≈2,5 palabras/s) + 1,5 s,
 // y termina con una pausa para ver el resultado.
@@ -156,7 +156,7 @@ const finPaso = (i: number) => {
 };
 
 // --- Paso 1: separar huevos (se muestra uno, con "×2")
-g.marca("paso0").quieto(10);
+g.marca("paso0").quieto(26); // el paso 1 empieza al cerrarse la cortina (sin hueco entre pantallas)
 g.coger_de_despensa(0, 1, "huevo").ir(YEMAS.x, 560, 22).quieto(6).son("toc-huevo").quieto(10).marca("huevo1").clic("crack-suave").soltar().quieto(24);
 g.ir(CLARAS.x + 130, 470, 20).marca("congelar").son("tictac", { dur: 50 }).quieto(50);
 finPaso(0);
@@ -165,21 +165,21 @@ finPaso(0);
 g.marca("paso1").quieto(6);
 g.coger_de_despensa(0, 2, "leche").ir(YEMAS.x + 60, 520, 22).marca("leche").son("gorgoteo", { dur: 28, vol: 0.6 }).quieto(28).soltar();
 g.coger_de_despensa(1, 2, "vainilla").ir(YEMAS.x + 40, 540, 20).marca("vainilla0").clic("plop-3", 0.5).quieto(8);
-g.soltar().coger("varillas").ir(YEMAS.x + 70, 640, 16).marca("batirY").son("batir", { dur: 54 }).girar(YEMAS.x, 645, 70, 16, 54, 3).marca("batirYfin").soltar();
+g.soltar().coger("varillas").ir(YEMAS.x + 70, 545, 16).marca("batirY").son("batir", { dur: 54 }).girar(YEMAS.x, 545, 70, 16, 54, 3).marca("batirYfin").soltar();
 finPaso(1);
 
 // --- Paso 3: tamizar (harina y polvo de hornear juntos)
 g.marca("paso2").quieto(6);
 g.coger_de_despensa(0, 2, "tamiz").ir(hueco(1, 2).x, hueco(1, 2).y, 18).clic("toc", 0.6);
 g.ir(YEMAS.x, 500, 22).marca("tamiz1").son("tamizar", { dur: 44 }).sacudir(44).marca("tamizFin").soltar();
-g.coger("varillas").ir(YEMAS.x + 70, 640, 16).marca("mezclaY").son("batir", { dur: 36 }).girar(YEMAS.x, 645, 60, 14, 36, 2).marca("mezclaYfin").soltar();
+g.coger("varillas").ir(YEMAS.x + 70, 545, 16).marca("mezclaY").son("batir", { dur: 36 }).girar(YEMAS.x, 545, 60, 14, 36, 2).marca("mezclaYfin").soltar();
 finPaso(2);
 
 // --- Paso 4: merengue (espumoso → azúcar en 3 veces → picos firmes)
-g.marca("paso3").coger("batidora").ir(CLARAS.x + 60, 600, 20).marca("batidora").son("batidora", { dur: 34 }).girar(CLARAS.x, 610, 60, 12, 34, 2).soltar();
+g.marca("paso3").coger("batidora").ir(CLARAS.x + 60, 600, 20).marca("batidora").son("batidora", { dur: 34 }).girar(CLARAS.x, 625, 60, 12, 34, 2).soltar();
 g.coger_de_despensa(0, 1, "azucar").ir(CLARAS.x + 20, 540, 20);
 for (let k = 1; k <= 3; k++) g.marca(`azucar${k}`).clic("espolvorear").quieto(14);
-g.soltar().coger("batidora").ir(CLARAS.x + 60, 600, 16).son("batidora", { dur: 60 }).girar(CLARAS.x, 610, 60, 12, 60, 4);
+g.soltar().coger("batidora").ir(CLARAS.x + 60, 600, 16).son("batidora", { dur: 60 }).girar(CLARAS.x, 625, 60, 12, 60, 4);
 g.marca("picos").son("tintineo", { vol: 0.6 }).soltar().ir(CLARAS.x + 150, 520, 14);
 finPaso(3);
 
