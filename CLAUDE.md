@@ -83,5 +83,3 @@ npx remotion render AprendeAContar out/aprende-a-contar.mp4
   se descarga con el workflow manual "Descargar banco de sonidos" (GitHub Actions, rama de trabajo),
   usando `scripts/freesound_descargar.py --catalogo scripts/catalogo_sonidos.txt`. En el catálogo,
   `id:12345` fija un sonido concreto. Sonidos rechazados en `sounds/rechazados.txt` (no se re-descargan).
-- Sonidos de diseño propio (id `diseno-…`, p. ej. miel con `scripts/disenar_miel.py`) se derivan solo
-  de fuentes CC0 del banco y no cuentan en el cupo de Freesound de cada acción.
