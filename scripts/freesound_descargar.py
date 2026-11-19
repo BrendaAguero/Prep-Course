@@ -17,7 +17,8 @@ Uso:
     python scripts/freesound_descargar.py --pedido sounds/pedido.txt   # una búsqueda o ID por línea
     python scripts/freesound_descargar.py --buscar "kitchen ambience" --licencias cc0      # solo CC0
     python scripts/freesound_descargar.py --catalogo scripts/catalogo_sonidos.txt --cantidad 3
-        # banco por acciones: cada línea "accion | búsqueda 1 ; búsqueda 2 ; …" → sounds/<accion>/
+        # banco por acciones: cada línea "accion | búsqueda 1 ; id:12345 ; …" → sounds/<accion>/
+        # (id:12345 = sonido concreto de Freesound elegido a mano; va antes que las búsquedas)
 
 Clave: variable de entorno FREESOUND_TOKEN. Si no existe, se envía la petición sin cabecera
 (en el entorno de Claude Code el proxy añade la clave guardada).
@@ -184,7 +185,8 @@ def por_accion() -> dict[str, int]:
     cuenta: dict[str, int] = {}
     with CREDITOS.open(encoding="utf-8") as f:
         for fila in csv.DictReader(f):
-            if fila.get("accion") and (CARPETA / fila["archivo"]).exists():
+            # los sonidos de diseño propio (id "diseno-…") no ocupan plazas de Freesound
+            if fila.get("accion") and not fila["id"].startswith("diseno-") and (CARPETA / fila["archivo"]).exists():
                 cuenta[fila["accion"]] = cuenta.get(fila["accion"], 0) + 1
     return cuenta
 
@@ -322,7 +324,9 @@ def main() -> int:
             for c in busquedas:
                 if reunidos >= a.cantidad:
                     break
-                for s in buscar(c, a.cantidad * 3, a.dur_min, a.dur_max, licencias):
+                # "id:12345" = sonido concreto elegido a mano; si no, es una búsqueda
+                candidatos = [info(c[3:].strip())] if c.startswith("id:") else buscar(c, a.cantidad * 3, a.dur_min, a.dur_max, licencias)
+                for s in candidatos:
                     sid = str(s["id"])
                     if sid in elegidos or not permitida(tipo_licencia(s.get("license", "")), licencias) or excluido(s):
                         continue

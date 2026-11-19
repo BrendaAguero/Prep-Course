@@ -79,3 +79,9 @@ npx remotion render AprendeAContar out/aprende-a-contar.mp4
 - Se llena con `scripts/colab_descargar_sonidos.py` en Google Colab (Freesound bloquea las
   descargas desde el entorno de Claude). Al añadir una receta: pasos reales → acciones del banco;
   si falta una acción, añadirla al `CATALOGO` del script y al README.
+- Banco actual en `sounds/` (por acción, créditos en `sounds/creditos.csv` y `sounds/CREDITOS.txt`):
+  se descarga con el workflow manual "Descargar banco de sonidos" (GitHub Actions, rama de trabajo),
+  usando `scripts/freesound_descargar.py --catalogo scripts/catalogo_sonidos.txt`. En el catálogo,
+  `id:12345` fija un sonido concreto. Sonidos rechazados en `sounds/rechazados.txt` (no se re-descargan).
+- Sonidos de diseño propio (id `diseno-…`, p. ej. miel con `scripts/disenar_miel.py`) se derivan solo
+  de fuentes CC0 del banco y no cuentan en el cupo de Freesound de cada acción.

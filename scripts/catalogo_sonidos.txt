@@ -1,13 +1,17 @@
 # Catálogo del banco de sonidos: una acción por línea.
 # Formato:  accion | búsqueda 1 ; búsqueda 2 ; búsqueda 3   (en inglés, de más a menos precisa)
+#           id:12345 = sonido concreto de Freesound elegido a mano (se prueba en ese orden)
 # Se usa con: python scripts/freesound_descargar.py --catalogo scripts/catalogo_sonidos.txt
 
 # HUEVOS_Y_BATIDOS
 cascar-huevo | egg crack ; cracking egg ; egg break bowl
 batir-mano | whisking ; whisk bowl ; beating eggs
 batidora | hand mixer ; electric mixer ; whipping cream
-mezclar-espatula | mixing batter ; folding batter spatula ; batter bowl spatula
+mezclar-espatula | id:474041 ; mixing batter ; folding batter spatula ; batter bowl spatula
 remover-cuchara | stirring spoon ; stirring bowl ; stir pot
+
+# POSTRES
+gelatina-temblar | id:181914 ; id:181911 ; id:181910 ; jelly wobble ; jelly plate
 
 # CORTAR_Y_PREPARAR
 cortar-tabla | chopping board ; knife chopping ; cutting board knife
@@ -28,7 +32,7 @@ bolsa-seca | flour bag ; paper bag kitchen ; rustling paper bag
 # LIQUIDOS
 verter-liquido | pouring water ; pouring milk ; pour liquid
 verter-aceite | pouring oil ; pouring olive oil ; oil pan
-verter-espeso | honey dripping spoon ; pouring syrup ; maple syrup pour ; pouring honey
+verter-espeso | id:505983 ; id:119863 ; id:119532 ; spilling thick liquid ; viscous liquid ; ketchup bottle
 grifo | kitchen faucet ; tap water sink ; filling glass water
 gotear | dripping water ; drip ; drops
 
