@@ -5,14 +5,14 @@ import { huecoDespensa } from "../../posiciones";
 import type { Ingrediente, PasoReceta } from "../../tipos";
 
 export const INGREDIENTES: Ingrediente[] = [
-  { s: "huevo", cant: "2", nombre: "huevos grandes" },
-  { s: "leche", cant: "1½ cda", nombre: "leche entera" },
-  { s: "vainilla", cant: "¼ cdta", nombre: "vainilla" },
-  { s: "harina", cant: "¼ taza", nombre: "harina de repostería" },
-  { s: "polvo", cant: "½ cdta", nombre: "polvo de hornear" },
-  { s: "azucar", cant: "2 cdas", nombre: "azúcar" },
-  { s: "aceite", cant: "1 cda", nombre: "aceite neutro" },
-  { s: "agua", cant: "2 cdas", nombre: "agua (vapor)" },
+  { s: "huevo", cant: "2", nombre: "Huevos" },
+  { s: "leche", cant: "1½ cda", nombre: "Leche" },
+  { s: "vainilla", cant: "¼ cdta", nombre: "Vainilla" },
+  { s: "harina", cant: "¼ taza", nombre: "Harina" },
+  { s: "polvo", cant: "½ cdta", nombre: "Levadura" },
+  { s: "azucar", cant: "2 cdas", nombre: "Azúcar" },
+  { s: "aceite", cant: "1 cda", nombre: "Aceite" },
+  { s: "agua", cant: "2 cdas", nombre: "Agua" },
 ];
 
 export const PASOS: PasoReceta[] = [

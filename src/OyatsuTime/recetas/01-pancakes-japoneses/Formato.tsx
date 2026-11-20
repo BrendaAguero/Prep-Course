@@ -1,14 +1,13 @@
 // Receta nº 1 · Pancakes japoneses, montada sobre la base común de おやつタイム.
 import React from "react";
 import { Composition, Folder } from "remotion";
-import type { ColorFondo } from "../../Fondo";
 import { MarcoTikTok } from "../../Marco";
 import type { Aparicion } from "../../Nube";
 import { P } from "../../tema";
 import type { Receta } from "../../tipos";
 import { VentanaJuego } from "../../Ventana";
-import { Cocina2, Gancho, PlatoFinal, Utensilio } from "./Escena";
-import { CLARAS, G, INGREDIENTES, PASOS, PLATO } from "./guion";
+import { Cocina2, PlatoFinal, Utensilio } from "./Escena";
+import { G, INGREDIENTES, PASOS, PLATO } from "./guion";
 
 const E = G.ev;
 
@@ -18,7 +17,7 @@ const APARICIONES: Aparicion[] = [
   { desde: E.azucar3 + 14, hasta: E.picos + 10, tipo: "batiendo", frase: "¡Te ayudo!", lado: "der" },
   { desde: E.reloj1 + 6, hasta: E.reloj1 + 76, tipo: "asomada", frase: "¡Mira cómo suben!", lado: "der" },
   { desde: E.jiggle1, hasta: E.jiggle1 + 56, tipo: "asomada", frase: "¡Qué esponjoso!", lado: "der" },
-  { desde: E.completada + 12, hasta: E.cortina3 - 4, tipo: "celebra", frase: "¡Receta nueva!", lado: "der" },
+  { desde: E.completada + 12, hasta: E.cortina3 - 4, tipo: "celebra", lado: "izq" },
 ];
 
 export const RECETA: Receta = {
@@ -31,19 +30,19 @@ export const RECETA: Receta = {
   utensilios: ["2 boles", "varillas", "batidora", "tamiz", "sartén con tapa"],
   pasos: PASOS,
   intro: "Receta japonesa original: altos, esponjosos y temblorosos.",
+  gancho: ["¿Pancakes que", "tiemblan? ☁️"],
+  consejoIngredientes: "Usa harina de repostería: quedan más tiernos. Los huevos, recién sacados de la nevera.",
   g: G,
   apariciones: APARICIONES,
-  barras: [{ etiqueta: "Esponjoso", desde: E.batidora, hasta: E.picos, x: CLARAS.x, y: 160 }],
-  plato: { dibujo: <PlatoFinal p={P} />, cx: PLATO.x, cy: PLATO.y - 60 },
+  barras: [{ etiqueta: "Esponjoso", desde: E.batidora, hasta: E.picos }],
+  plato: { dibujo: <PlatoFinal p={P} />, cx: PLATO.x, cy: PLATO.y - 70, ancho: 380 },
 };
 
 const Ventana: React.FC = () => (
-  <VentanaJuego r={RECETA} gancho={<Gancho p={P} />} cocina={<Cocina2 p={P} />} carga={(que, frame) => <Utensilio p={P} que={que} frame={frame} />} />
+  <VentanaJuego r={RECETA} cocina={<Cocina2 p={P} />} carga={(que, frame) => <Utensilio p={P} que={que} frame={frame} />} />
 );
 
-export const PancakesTikTok: React.FC<{ zonaSegura: boolean; fondo?: ColorFondo }> = ({ zonaSegura, fondo }) => (
-  <MarcoTikTok r={RECETA} ventana={<Ventana />} zonaSegura={zonaSegura} fondo={fondo} />
-);
+export const PancakesTikTok: React.FC<{ zonaSegura: boolean }> = ({ zonaSegura }) => <MarcoTikTok r={RECETA} ventana={<Ventana />} zonaSegura={zonaSegura} />;
 
 export const PancakesTikTokComposition: React.FC = () => (
   <Folder name="OyatsuTime-01">

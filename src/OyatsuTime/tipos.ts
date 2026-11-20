@@ -17,12 +17,16 @@ export type Receta = {
   pasos: PasoReceta[];
   /** Frase del panel en el gancho/menú. */
   intro: string;
+  /** Pregunta del gancho, en dos líneas. */
+  gancho: [string, string];
+  /** Consejo del panel mientras se ve el inventario. */
+  consejoIngredientes: string;
   g: GuionHecho;
   apariciones: Aparicion[];
   /** Barras de progreso dentro de la cocina (p. ej. "Esponjoso"). */
-  barras?: { etiqueta: string; desde: number; hasta: number; x: number; y: number }[];
-  /** Dibujo del plato terminado en coordenadas de la ventana (1200×900) y su centro. */
-  plato: { dibujo: React.ReactNode; cx: number; cy: number };
+  barras?: { etiqueta: string; desde: number; hasta: number }[];
+  /** Dibujo del plato terminado en coordenadas de la cocina (1200×900), su centro y su ancho aproximado. */
+  plato: { dibujo: React.ReactNode; cx: number; cy: number; ancho: number };
 };
 
 export const pasoInicio = (r: Receta) => r.pasos.map((_, i) => r.g.ev[`paso${i}`]);

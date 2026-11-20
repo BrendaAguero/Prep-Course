@@ -1,9 +1,10 @@
-// Piezas de interfaz del juego (dentro de la ventana 1200×900).
+// Piezas de interfaz del juego (dentro de la ventana; vista 1050×900).
 import React from "react";
 import { Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { Cursor } from "../CocinaDulce/Deco";
 import { Escribir } from "../CocinaDulce/Juego";
 import type { GuionHecho } from "./guion";
+import { VISTA } from "./posiciones";
 import { ALTO, ANCHO, borde, FUENTES, P, texto } from "./tema";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
@@ -18,14 +19,11 @@ export const posicionCursor = (g: GuionHecho, frame: number) => {
   return { x: x0 + (x1 - x0) * t, y: y0 + (y1 - y0) * t };
 };
 
-/** Cinta superior "PASO n/N · título". */
-export const Cinta: React.FC<{ n: number; total: number; titulo: string; desde: number }> = ({ n, total, titulo, desde }) => (
-  <div style={{ position: "absolute", left: 40, right: 40, top: 40, height: 92, borderRadius: 24, backgroundColor: P.ui, border: borde(P, 5), boxShadow: `0 8px 0 ${P.contorno}`, display: "flex", alignItems: "center", gap: 22, padding: "0 28px" }}>
-    <div style={{ position: "absolute", inset: 8, borderRadius: 16, border: "3px dashed #FFFFFFAA" }} />
-    <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 38, ...texto(P, P.acento, 7) }}>
-      PASO {n}/{total}
-    </div>
-    <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 42, ...texto(P, "#FFFFFF", 7) }}>
+/** Cinta superior con la acción del paso (el número va en el progreso, fuera de la ventana). */
+export const Cinta: React.FC<{ n: number; titulo: string; desde: number }> = ({ n, titulo, desde }) => (
+  <div style={{ position: "absolute", left: 24, right: 24, top: 22, height: 96, borderRadius: 26, backgroundColor: P.ui, border: borde(P, 5), boxShadow: `0 8px 0 ${P.contorno}`, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 28px" }}>
+    <div style={{ position: "absolute", inset: 8, borderRadius: 18, border: "3px dashed #FFFFFFAA" }} />
+    <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 50, ...texto(P, "#FFFFFF", 8) }}>
       <Escribir key={n} texto={titulo} desde={desde} vel={1} sonido={false} />
     </div>
   </div>
@@ -45,14 +43,14 @@ export const MasPuntos: React.FC<{ desde?: number }> = ({ desde }) => {
         position: "absolute",
         left: 0,
         right: 0,
-        top: 170 - t * 1.6,
+        top: 150 - t * 1.6,
         textAlign: "center",
         opacity: interpolate(t, [24, 34], [1, 0], clamp),
         transform: `scale(${s})`,
         fontFamily: FUENTES.pixel,
         fontWeight: 700,
-        fontSize: 64,
-        ...texto(P, P.acento, 10),
+        fontSize: 70,
+        ...texto(P, P.acento, 11),
       }}
     >
       ¡Bien! +100 ★
@@ -61,7 +59,7 @@ export const MasPuntos: React.FC<{ desde?: number }> = ({ desde }) => {
 };
 
 /** Barra de progreso de juego (p. ej. "Esponjoso") que se llena entre dos momentos. */
-export const BarraProgreso: React.FC<{ etiqueta: string; desde: number; hasta: number; x: number; y: number; ancho?: number }> = ({ etiqueta, desde, hasta, x, y, ancho = 380 }) => {
+export const BarraProgreso: React.FC<{ etiqueta: string; desde: number; hasta: number; x: number; y: number; ancho?: number }> = ({ etiqueta, desde, hasta, x, y, ancho = 400 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   if (frame < desde - 4 || frame > hasta + 40) return null;
@@ -69,8 +67,8 @@ export const BarraProgreso: React.FC<{ etiqueta: string; desde: number; hasta: n
   const v = interpolate(frame, [desde, hasta], [0, 1], clamp);
   const lleno = v >= 1;
   return (
-    <div style={{ position: "absolute", left: x - ancho / 2, top: y, width: ancho, transform: `scale(${entra})`, opacity: interpolate(frame, [hasta + 30, hasta + 40], [1, 0], clamp) }}>
-      <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 32, marginBottom: 6, ...texto(P, lleno ? P.acento : "#FFFFFF", 7) }}>
+    <div style={{ position: "absolute", left: x, top: y, width: ancho, padding: "10px 16px 16px", borderRadius: 22, backgroundColor: `${P.panel}EE`, border: borde(P, 4), transformOrigin: "0 0", transform: `scale(${entra})`, opacity: interpolate(frame, [hasta + 30, hasta + 40], [1, 0], clamp) }}>
+      <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 38, marginBottom: 6, color: lleno ? P.uiOscuro : P.texto }}>
         {etiqueta} {lleno ? "¡MAX! ♡" : `${Math.round(v * 100)}%`}
       </div>
       <div style={{ height: 40, borderRadius: 20, backgroundColor: "#FFFFFF", border: borde(P, 5), overflow: "hidden", boxShadow: `0 6px 0 ${P.contorno}` }}>
@@ -89,14 +87,14 @@ export const Cortina: React.FC<{ centro: number; id: string }> = ({ centro, id }
       ? interpolate(frame, [centro - 16, centro], [1.2, 0], { ...clamp, easing: Easing.in(Easing.quad) })
       : interpolate(frame, [centro, centro + 16], [0, 1.2], { ...clamp, easing: Easing.out(Easing.quad) });
   return (
-    <svg width={ANCHO} height={ALTO} style={{ position: "absolute", inset: 0 }}>
+    <svg width={VISTA.ancho} height={VISTA.alto} style={{ position: "absolute", inset: 0 }}>
       <defs>
         <mask id={`m-${id}`}>
-          <rect width={ANCHO} height={ALTO} fill="#fff" />
-          <path d="M0 30 C -60 -10, -40 -60, 0 -30 C 40 -60, 60 -10, 0 30 Z" transform={`translate(600 470) scale(${e * 14})`} fill="#000" />
+          <rect width={VISTA.ancho} height={VISTA.alto} fill="#fff" />
+          <path d="M0 30 C -60 -10, -40 -60, 0 -30 C 40 -60, 60 -10, 0 30 Z" transform={`translate(${VISTA.ancho / 2} 470) scale(${e * 14})`} fill="#000" />
         </mask>
       </defs>
-      <rect width={ANCHO} height={ALTO} fill={P.ui} mask={`url(#m-${id})`} />
+      <rect width={VISTA.ancho} height={VISTA.alto} fill={P.ui} mask={`url(#m-${id})`} />
     </svg>
   );
 };
@@ -118,7 +116,7 @@ export const CursorJuego: React.FC<{ g: GuionHecho; visible: boolean; carga?: (q
         const q = posicionCursor(g, c);
         return <div key={c} style={{ position: "absolute", left: q.x - 10 - t * 5, top: q.y - 10 - t * 5, width: 20 + t * 10, height: 20 + t * 10, borderRadius: "50%", border: `6px solid ${P.ui}`, opacity: 1 - t / 12 }} />;
       })}
-      <Cursor x={cursor.x} y={cursor.y} presionado={presionado} />
+      <Cursor x={cursor.x} y={cursor.y} px={6.5} presionado={presionado} />
     </>
   );
 };

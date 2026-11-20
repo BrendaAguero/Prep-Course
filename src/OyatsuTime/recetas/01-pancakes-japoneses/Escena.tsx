@@ -1,4 +1,5 @@
 import React from "react";
+import { INDICADOR } from "../../posiciones";
 import { ALTO, ANCHO } from "../../tema";
 import { AbsoluteFill, Easing, interpolate, interpolateColors, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { Destello, Sprite } from "../../../CocinaDulce/Deco";
@@ -125,7 +126,7 @@ const Chip: React.FC<{ p: Paleta; x: number; y: number; children: React.ReactNod
       border: borde(p, 5),
       fontFamily: C.pixel,
       fontWeight: 700,
-      fontSize: 34,
+      fontSize: 40,
       color: p.texto,
     }}
   >
@@ -137,7 +138,7 @@ const Reloj: React.FC<{ p: Paleta; desde: number; hasta: number; min0: number; m
   if (frame < desde - 6 || frame > hasta + 20) return null;
   const seg = Math.round(interpolate(frame, [desde, hasta], [min0 * 60, min1 * 60], clamp));
   return (
-    <Chip p={p} x={560} y={160}>
+    <Chip p={p} x={INDICADOR.x} y={INDICADOR.y}>
       ⏱ {Math.floor(seg / 60)}:{String(seg % 60).padStart(2, "0")}
     </Chip>
   );
@@ -271,7 +272,7 @@ export const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
             <div style={{ position: "absolute", left: CLARAS.x - 40, top: 470, fontSize: 70, opacity: congelado, transform: `rotate(${frame * 3}deg)` }}>❄️</div>
           )}
           {frame >= E.huevo1 - 30 && frame < E.huevo1 + 40 && (
-            <div style={{ position: "absolute", left: YEMAS.x + 70, top: 470, fontFamily: C.redonda, fontSize: 64, ...texto(p, p.acento, 10) }}>×2</div>
+            <div style={{ position: "absolute", left: YEMAS.x + 60, top: 470, padding: "4px 18px", borderRadius: 18, backgroundColor: p.panel, border: borde(p, 5), fontFamily: C.pixel, fontWeight: 700, fontSize: 44, color: p.texto }}>×2 huevos</div>
           )}
           {[1, 2, 3].map((k) =>
             frame >= E[`azucar${k}`] && frame < E[`azucar${k}`] + 22 ? (
@@ -281,7 +282,7 @@ export const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
             ) : null,
           )}
           {frame >= E.batidora && frame < E.paso4 && (
-            <Chip p={p} x={CLARAS.x - 150} y={400}>
+            <Chip p={p} x={INDICADOR.x} y={INDICADOR.y + 130}>
               {espuma < 0.3 ? "Espumoso" : espuma < 0.85 ? "Picos suaves" : "¡Picos firmes! ✓"}
             </Chip>
           )}
@@ -354,7 +355,7 @@ export const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
           <Reloj p={p} desde={E.reloj1} hasta={E.reloj1fin} min0={6} min1={0} frame={frame} />
           <Reloj p={p} desde={E.reloj2} hasta={E.listo} min0={4} min1={0} frame={frame} />
           {frame >= E.fuego && frame < E.paso6 && (
-            <Chip p={p} x={560} y={160}>
+            <Chip p={p} x={INDICADOR.x} y={INDICADOR.y}>
               🔥 {Math.round(20 + 130 * calor)} °C · bajo
             </Chip>
           )}
@@ -479,17 +480,3 @@ export const PlatoFinal: React.FC<{ p: Paleta; t?: number }> = ({ p, t = 0 }) =>
   );
 };
 
-export const Gancho: React.FC<{ p: Paleta }> = ({ p }) => {
-  const frame = useCurrentFrame();
-  const t = Math.sin(frame * 0.9) * Math.exp(-(frame % 30) / 10) * 0.12;
-  return (
-    <AbsoluteFill>
-      <Cocina p={p} />
-      <PlatoFinal p={p} t={t} />
-      <div style={{ position: "absolute", top: 120, width: "100%", textAlign: "center", transform: "rotate(-3deg)" }}>
-        <div style={{ fontFamily: C.redonda, fontSize: 96, ...texto(p, "#FFFFFF", 16) }}>¿Pancakes que</div>
-        <div style={{ fontFamily: C.redonda, fontSize: 110, ...texto(p, p.ui, 16) }}>tiemblan? ☁️</div>
-      </div>
-    </AbsoluteFill>
-  );
-};

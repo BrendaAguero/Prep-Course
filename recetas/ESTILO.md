@@ -46,15 +46,20 @@ descripción es larga) y ~120 px a la derecha (me gusta, comentar, compartir). M
 
 | Zona (y) | Contenido | x |
 |---|---|---|
-| 0–150 | Solo fondo | — |
-| 150–330 | Marca: **おやつタイム** + *Oyatsu Time* + chip con el nombre de la receta | 60–960 |
-| 360–1035 | **Ventana del juego** (1200×900 lógicos, escala 0,75) | 60–960 |
-| 1060–1290 | **Panel de consejo** (Nube o 📝 + texto) | 60–960 |
-| 1300–1460 | **Progreso de la receta** (Paso n/N + barra por pasos) | 60–960 |
-| 1480–1920 | Solo fondo y decoración (lo tapa TikTok) | — |
-| x 960–1080 | Nada importante (botones de TikTok) | — |
+| 0–110 | Solo fondo | — |
+| 120–330 | **Logo pixel おやつタイム** (×2) + etiqueta "Nº n · receta" al lado | 50–970 |
+| 350–1139 | **Ventana del juego**: vista de 1050×900 a escala 0,876 (la cocina se ve con una cámara que recorta el margen izquierdo) | 50–970 |
+| 1166–1366 | **Panel de consejo** (Nube o libreta + texto) | 50–970 |
+| 1380–1500 | **Progreso** "Paso n de N" + barra + ★ puntos (solo durante los pasos) | 50–970 |
+| 1530–1920 | Suelo de madera (lo tapa TikTok) | — |
+| x 980–1080 | Nada importante (botones de TikTok) | — |
 
-- **Fondo exterior:** Papel vintage (fondo nº 14: flores sobre rosa + zócalo de madera).
+- **Logo:** `public/logo/oyatsu-time.png`, pixel art generado con `scripts/generar_logo.py`
+  (letras esponjosas Mochiy Pop One a baja resolución, doble contorno blanco y marrón, brillo,
+  gotitas, corazones, lazo y nube con "Oyatsu Time"). Se muestra con `image-rendering: pixelated`.
+- **Fondo exterior:** pared de rayas celestes + zócalo blanco + suelo de madera (`src/OyatsuTime/Fondo.tsx`).
+- **Tamaños:** dentro de la ventana, ningún texto por debajo de 32 px lógicos.
+- **Cada dato en un solo sitio:** la cinta dice solo la acción; el número de paso va en el progreso.
 - **Comprobación obligatoria:** cada video tiene una variante con la **capa de zona segura**
   (`zonaSegura`) que pinta encima la interfaz de TikTok; se revisa antes de publicar.
 

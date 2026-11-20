@@ -4,9 +4,10 @@ import { Audio } from "@remotion/media";
 import { AbsoluteFill, Img, interpolate, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { Sprite } from "../CocinaDulce/Deco";
 import { Conejita } from "../CocinaDulce/disenos/Conejita";
-import { Fondo, type ColorFondo } from "./Fondo";
+import { Fondo } from "./Fondo";
+import { VISTA } from "./posiciones";
 import { nubeVisible } from "./Nube";
-import { ALTO, ANCHO, borde, FUENTES, P, texto, VOLUMEN_MUSICA, ZONAS } from "./tema";
+import { borde, FUENTES, P, texto, VOLUMEN_MUSICA, ZONAS } from "./tema";
 import { pasoActual, pasoInicio, puntos, type Receta } from "./tipos";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
@@ -36,9 +37,10 @@ const Cabecera: React.FC<{ r: Receta }> = ({ r }) => (
 const consejo = (r: Receta, frame: number): { titulo: string; texto: string; desde: number } => {
   const E = r.g.ev;
   const paso = pasoActual(r, frame);
-  if (frame >= E.completada) return { titulo: "¡Lo lograste!", texto: "Guárdala en tu libro y pruébala en casa ♡", desde: E.completada };
+  if (frame >= E.cortina3) return { titulo: "¡Hasta la próxima!", texto: "Guarda el video y hazla en casa ♡", desde: E.cortina3 };
+  if (frame >= E.completada) return { titulo: "¡Lo lograste!", texto: "Guárdala en tu libro de recetas ♡", desde: E.completada };
   if (paso >= 0) return { titulo: "Truco", texto: r.pasos[paso].truco, desde: pasoInicio(r)[paso] };
-  if (frame >= E.cortina1) return { titulo: "Ingredientes", texto: `${r.porciones} · ${r.tiempo}. ¡Saca captura y ten la lista a mano!`, desde: E.cortina1 };
+  if (frame >= E.cortina1) return { titulo: "Truco", texto: r.consejoIngredientes, desde: E.cortina1 };
   return { titulo: "Receta original", texto: r.intro, desde: 0 };
 };
 
@@ -72,24 +74,24 @@ const PanelConsejo: React.FC<{ r: Receta }> = ({ r }) => {
         top: ZONAS.consejo.y0,
         height: ZONAS.consejo.y1 - ZONAS.consejo.y0,
         boxSizing: "border-box",
-        padding: "22px 30px 22px 190px",
-        borderRadius: 34,
+        padding: "18px 30px 18px 180px",
+        borderRadius: 30,
         backgroundColor: P.panel,
-        border: borde(P, 6),
-        boxShadow: `0 10px 0 ${P.contorno}`,
+        border: borde(P, 4),
+        boxShadow: `0 5px 0 ${P.contorno}55`,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
       }}
     >
-      <div style={{ position: "absolute", left: 26, top: 30 }}>
+      <div style={{ position: "absolute", left: 22, top: "50%", transform: "translateY(-50%)" }}>
         {conNube ? <Conejita p={P} px={6} pose={frame % 60 < 30 ? "feliz" : "normal"} /> : <Libreta />}
       </div>
       <div style={{ opacity: entra, transform: `translateX(${(1 - entra) * 30}px)` }}>
-        <div style={{ fontFamily: FUENTES.redonda, fontSize: 40, color: P.uiOscuro, lineHeight: 1.1 }}>
-          {conNube ? (c.titulo === "Truco" ? "Truco de Nube" : c.titulo) : `📝 ${c.titulo}`}
+        <div style={{ fontFamily: FUENTES.redonda, fontSize: 38, color: P.uiOscuro, lineHeight: 1.1 }}>
+          {conNube && c.titulo === "Truco" ? "Truco de Nube" : c.titulo}
         </div>
-        <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 33, color: P.texto, marginTop: 8, lineHeight: 1.25 }}>{c.texto}</div>
+        <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 36, color: P.texto, marginTop: 6, lineHeight: 1.2 }}>{c.texto}</div>
       </div>
     </div>
   );
@@ -98,33 +100,25 @@ const PanelConsejo: React.FC<{ r: Receta }> = ({ r }) => {
 /** Progreso de la receta: Paso n/N + barra por pasos + puntos. */
 const ProgresoReceta: React.FC<{ r: Receta }> = ({ r }) => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const E = r.g.ev;
   const paso = pasoActual(r, frame);
   const n = r.pasos.length;
   const fin = frame >= E.completada;
-  const etiqueta = fin ? "¡Completada!" : paso >= 0 ? `Paso ${paso + 1}/${n}` : `Receta nº ${r.numero}`;
+  if (frame < E.cortina2) return null; // solo cuando empiezan los pasos
+  const entra = spring({ frame: frame - E.cortina2, fps, config: { damping: 14 } });
+  const etiqueta = fin ? "¡Completada!" : `Paso ${paso + 1} de ${n}`;
   return (
-    <div style={{ position: "absolute", left: X0, width: ANCHO_UTIL, top: ZONAS.progreso.y0, height: ZONAS.progreso.y1 - ZONAS.progreso.y0, boxSizing: "border-box", padding: "16px 28px", borderRadius: 30, backgroundColor: `${P.panel}EE`, border: borde(P, 5) }}>
+    <div style={{ position: "absolute", left: X0, width: ANCHO_UTIL, top: ZONAS.progreso.y0, height: ZONAS.progreso.y1 - ZONAS.progreso.y0, boxSizing: "border-box", padding: "12px 26px", borderRadius: 28, backgroundColor: `${P.panel}F2`, border: borde(P, 4), opacity: entra, transform: `translateY(${(1 - entra) * 20}px)` }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 40, ...texto(P, P.ui, 7) }}>{etiqueta}</div>
-        <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 40, ...texto(P, P.acento, 7) }}>★ {puntos(r, frame)}</div>
+        <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 40, color: P.uiOscuro }}>{etiqueta}</div>
+        <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 40, color: P.texto }}>★ {puntos(r, frame)}</div>
       </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+      <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
         {r.pasos.map((_, i) => {
           const hecho = fin || frame >= (E[`puntos${i}`] ?? Infinity);
           const ahora = i === paso && !hecho;
-          return (
-            <div
-              key={i}
-              style={{
-                flex: 1,
-                height: 34,
-                borderRadius: 10,
-                border: borde(P, 4),
-                backgroundColor: hecho ? P.ui : ahora ? (Math.floor(frame / 12) % 2 ? "#F9B9CB" : "#FFFFFF") : "#FFFFFF",
-              }}
-            />
-          );
+          return <div key={i} style={{ flex: 1, height: 30, borderRadius: 10, border: borde(P, 4), backgroundColor: hecho ? P.ui : ahora ? (Math.floor(frame / 12) % 2 ? "#F9B9CB" : "#FFFFFF") : "#FFFFFF" }} />;
         })}
       </div>
     </div>
@@ -143,7 +137,7 @@ const ZonaSegura: React.FC = () => {
       <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 320, backgroundColor: rojo }}>
         <div style={{ ...etiqueta, left: 20, top: 20 }}>Usuario · descripción · música (320)</div>
       </div>
-      <div style={{ position: "absolute", right: 0, width: 120, top: 700, bottom: 320, backgroundColor: rojo }}>
+      <div style={{ position: "absolute", right: 0, width: 100, top: 700, bottom: 320, backgroundColor: rojo }}>
         <div style={{ ...etiqueta, right: 10, top: 10, fontSize: 22 }}>♥ 💬 ↗</div>
       </div>
       <div style={{ position: "absolute", left: ZONAS.izquierda, width: ANCHO_UTIL, top: ZONAS.marca.y0, bottom: 1920 - ZONAS.progreso.y1, border: "4px dashed #00C853" }} />
@@ -174,14 +168,14 @@ const Sonidos: React.FC<{ r: Receta }> = ({ r }) => {
 };
 
 /** Video vertical completo: fondo, cabecera, ventana del juego, consejo, progreso y sonido. */
-export const MarcoTikTok: React.FC<{ r: Receta; ventana: React.ReactNode; zonaSegura?: boolean; fondo?: ColorFondo }> = ({ r, ventana, zonaSegura = false, fondo = "menta" }) => {
+export const MarcoTikTok: React.FC<{ r: Receta; ventana: React.ReactNode; zonaSegura?: boolean }> = ({ r, ventana, zonaSegura = false }) => {
   const { x, y, escala } = ZONAS.ventana;
   return (
     <AbsoluteFill>
-      <Fondo color={fondo} />
+      <Fondo />
       <Cabecera r={r} />
-      <div style={{ position: "absolute", left: x - 14, top: y - 14, width: ANCHO * escala + 28, height: ALTO * escala + 28, borderRadius: 38, backgroundColor: "#FFFFFF", border: borde(P, 6), boxShadow: `0 12px 0 ${P.contorno}` }} />
-      <div style={{ position: "absolute", left: x, top: y, width: ANCHO, height: ALTO, transform: `scale(${escala})`, transformOrigin: "0 0", borderRadius: 28 / escala, overflow: "hidden" }}>{ventana}</div>
+      <div style={{ position: "absolute", left: x - 14, top: y - 14, width: VISTA.ancho * escala + 28, height: VISTA.alto * escala + 28, borderRadius: 38, backgroundColor: "#FFFFFF", border: borde(P, 6), boxShadow: `0 12px 0 ${P.contorno}` }} />
+      <div style={{ position: "absolute", left: x, top: y, width: VISTA.ancho, height: VISTA.alto, transform: `scale(${escala})`, transformOrigin: "0 0", borderRadius: 28 / escala, overflow: "hidden" }}>{ventana}</div>
       <PanelConsejo r={r} />
       <ProgresoReceta r={r} />
       <Sonidos r={r} />

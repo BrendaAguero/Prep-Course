@@ -1,41 +1,54 @@
-// Fondo exterior del formato vertical: pared de rayas + suelo de rombos (escenario).
+// Fondo exterior del formato vertical: pared de rayas celestes + zócalo + suelo de madera.
 import React from "react";
 import { AbsoluteFill } from "remotion";
+import { ZONAS } from "./tema";
 
-export type ColorFondo = "menta" | "lavanda" | "celeste" | "mantequilla";
-
-export const COLORES_FONDO: Record<ColorFondo, { raya1: string; raya2: string; rombo: string; suelo: string; zocalo: string }> = {
-  menta: { raya1: "#BFE8D9", raya2: "#D9F4EA", rombo: "#C6EBDD", suelo: "#FFFFFF", zocalo: "#8FCFB8" },
-  lavanda: { raya1: "#D6CAF3", raya2: "#E8E0FA", rombo: "#DCD1F6", suelo: "#FFFFFF", zocalo: "#B3A1E6" },
-  celeste: { raya1: "#C3E2F6", raya2: "#DDF0FB", rombo: "#CBE6F8", suelo: "#FFFFFF", zocalo: "#93C6E8" },
-  mantequilla: { raya1: "#F8E3A6", raya2: "#FCF0CC", rombo: "#F9E8B5", suelo: "#FFFFFF", zocalo: "#E8C66E" },
+const C = {
+  raya1: "#C3E2F6",
+  raya2: "#DDF0FB",
+  zocalo: "#FFFFFF",
+  zocaloSombra: "#93C6E8",
+  madera: ["#EBC99B", "#E3BD8C", "#EFD2A8"],
+  junta: "#C49A6C",
+  veta: "#D9AE7D",
 };
 
-/** Altura (y) donde empieza el suelo. */
-export const HORIZONTE = 1470;
-
-export const Fondo: React.FC<{ color?: ColorFondo }> = ({ color = "menta" }) => {
-  const c = COLORES_FONDO[color];
+export const Fondo: React.FC = () => {
   const raya = 84;
-  const rw = 150; // ancho del rombo
-  const rh = 84; // alto del rombo (aplanado, en perspectiva)
+  const y0 = ZONAS.suelo;
+  const tabla = 46; // alto de cada tabla
+  const filas = Math.ceil((1920 - y0) / tabla);
   return (
-    <AbsoluteFill style={{ backgroundColor: c.raya2 }}>
+    <AbsoluteFill style={{ backgroundColor: C.raya2 }}>
       <svg width={1080} height={1920} style={{ position: "absolute", inset: 0 }} shapeRendering="crispEdges">
         <defs>
           <pattern id="rayas" width={raya * 2} height={10} patternUnits="userSpaceOnUse">
-            <rect width={raya} height={10} fill={c.raya1} />
-            <rect x={raya} width={raya} height={10} fill={c.raya2} />
-          </pattern>
-          <pattern id="rombos" width={rw} height={rh} patternUnits="userSpaceOnUse" x={-rw / 4} y={HORIZONTE}>
-            <rect width={rw} height={rh} fill={c.suelo} />
-            <polygon points={`${rw / 2},0 ${rw},${rh / 2} ${rw / 2},${rh} 0,${rh / 2}`} fill={c.rombo} />
+            <rect width={raya} height={10} fill={C.raya1} />
+            <rect x={raya} width={raya} height={10} fill={C.raya2} />
           </pattern>
         </defs>
-        <rect width={1080} height={HORIZONTE} fill="url(#rayas)" />
-        <rect y={HORIZONTE} width={1080} height={1920 - HORIZONTE} fill="url(#rombos)" />
-        <rect y={HORIZONTE - 6} width={1080} height={12} fill={c.zocalo} />
-        <rect y={HORIZONTE - 12} width={1080} height={6} fill="#FFFFFF" opacity={0.7} />
+        <rect width={1080} height={y0} fill="url(#rayas)" />
+        {/* suelo de tablas de madera, juntas escalonadas */}
+        {Array.from({ length: filas }, (_, f) => {
+          const y = y0 + f * tabla;
+          const largo = 300;
+          const desfase = (f * 130) % largo;
+          return (
+            <g key={f}>
+              <rect y={y} width={1080} height={tabla} fill={C.madera[f % 3]} />
+              <rect y={y + tabla - 4} width={1080} height={4} fill={C.junta} />
+              <rect x={(f * 97) % 700} y={y + 16} width={120} height={3} fill={C.veta} />
+              <rect x={((f * 211) % 600) + 380} y={y + 28} width={90} height={3} fill={C.veta} />
+              {Array.from({ length: 6 }, (_, k) => (
+                <rect key={k} x={k * largo - desfase} y={y} width={4} height={tabla} fill={C.junta} />
+              ))}
+            </g>
+          );
+        })}
+        {/* zócalo */}
+        <rect y={y0 - 26} width={1080} height={26} fill={C.zocalo} />
+        <rect y={y0 - 6} width={1080} height={6} fill={C.zocaloSombra} />
+        <rect y={y0 - 26} width={1080} height={4} fill={C.zocaloSombra} opacity={0.6} />
       </svg>
     </AbsoluteFill>
   );

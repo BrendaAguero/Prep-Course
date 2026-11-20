@@ -3,6 +3,7 @@ import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { Conejita, CONEJITA_ALTO, CONEJITA_ANCHO, type Pose } from "../CocinaDulce/disenos/Conejita";
 import { Escribir } from "../CocinaDulce/Juego";
 import { borde, FUENTES, P } from "./tema";
+import { VISTA } from "./posiciones";
 
 /** Cómo aparece Nube dentro de la ventana del juego. */
 export type TipoAparicion = "asomada" | "batiendo" | "probando" | "celebra";
@@ -54,19 +55,21 @@ export const Bocadillo: React.FC<{ texto: string; desde: number; x: number; y: n
     <div
       style={{
         position: "absolute",
-        ...(haciaIzq ? { right: 1200 - x } : { left: x }),
-        top: y,
+        ...(haciaIzq ? { right: VISTA.ancho - x } : { left: x }),
+        bottom: VISTA.alto - y + 18, // y = borde inferior del bocadillo (sobre la cabeza de Nube)
+        maxWidth: 330,
+        textAlign: "center",
         transform: `scale(${s})`,
-        transformOrigin: haciaIzq ? "90% 100%" : "10% 100%",
+        transformOrigin: haciaIzq ? "85% 100%" : "15% 100%",
         backgroundColor: "#FFFFFF",
         border: borde(P, 5),
         borderRadius: 24,
         padding: "10px 24px",
         fontFamily: FUENTES.pixel,
         fontWeight: 700,
-        fontSize: 40,
+        fontSize: 38,
+        lineHeight: 1.1,
         color: P.uiOscuro,
-        whiteSpace: "nowrap",
         boxShadow: `0 6px 0 ${P.contorno}`,
       }}
     >
@@ -77,7 +80,7 @@ export const Bocadillo: React.FC<{ texto: string; desde: number; x: number; y: n
   );
 };
 
-/** Nube dentro de la ventana del juego (1200×900): entra, actúa, habla y sale. */
+/** Nube dentro de la ventana del juego (vista 1050×900): entra, actúa, habla y sale. */
 export const NubeEnVentana: React.FC<{ apariciones: Aparicion[] }> = ({ apariciones }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -89,9 +92,9 @@ export const NubeEnVentana: React.FC<{ apariciones: Aparicion[] }> = ({ aparicio
   const alto = CONEJITA_ALTO * PX;
   const der = a.lado === "der";
   // asomada: solo cabeza y hombros sobre el borde inferior; resto: cuerpo entero en la esquina
-  const visibleY = a.tipo === "asomada" ? alto * 0.55 : alto * 0.98;
+  const visibleY = a.tipo === "asomada" ? alto * 0.74 : alto * 0.98;
   const oculto = (1 - entra) + sale;
-  const x = der ? 1200 - ancho - 20 + oculto * (ancho + 40) : 20 - oculto * (ancho + 40);
+  const x = der ? VISTA.ancho - ancho - 20 + oculto * (ancho + 40) : 20 - oculto * (ancho + 40);
   const y = 900 - visibleY + (a.tipo === "celebra" ? -Math.abs(Math.sin(frame / 5)) * 26 : 0);
   const pose: Pose =
     a.tipo === "celebra" ? (Math.floor(frame / 6) % 2 ? "brazos" : "feliz") : a.tipo === "probando" ? (frame % 40 < 20 ? "feliz" : "normal") : a.tipo === "batiendo" ? "feliz" : "normal";
@@ -102,7 +105,7 @@ export const NubeEnVentana: React.FC<{ apariciones: Aparicion[] }> = ({ aparicio
         {a.tipo === "batiendo" && <Accesorio que="batidor" frame={frame} />}
         {a.tipo === "probando" && <Accesorio que="cuchara" frame={frame} />}
       </div>
-      {a.frase && frame < a.hasta && <Bocadillo texto={a.frase} desde={a.desde + 10} x={der ? x + ancho * 0.45 : x + ancho * 0.55} y={y - 90} haciaIzq={der} />}
+      {a.frase && frame < a.hasta && <Bocadillo texto={a.frase} desde={a.desde + 10} x={der ? x + ancho - 6 : x + 6} y={y + 10} haciaIzq={der} />}
     </>
   );
 };
