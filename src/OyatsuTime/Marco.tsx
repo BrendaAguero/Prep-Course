@@ -1,29 +1,33 @@
 // Formato vertical 1080×1920 de おやつタイム, con la composición pensada para la zona segura de TikTok.
 import React from "react";
 import { Audio } from "@remotion/media";
-import { AbsoluteFill, interpolate, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
-import { Destello, Lazo, Sprite } from "../CocinaDulce/Deco";
+import { AbsoluteFill, Img, interpolate, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { Sprite } from "../CocinaDulce/Deco";
 import { Conejita } from "../CocinaDulce/disenos/Conejita";
-import { GRUPOS } from "../CocinaDulce/pancakes/fondos";
+import { Fondo, type ColorFondo } from "./Fondo";
 import { nubeVisible } from "./Nube";
-import { Logo } from "./Pantallas";
 import { ALTO, ANCHO, borde, FUENTES, P, texto, VOLUMEN_MUSICA, ZONAS } from "./tema";
 import { pasoActual, pasoInicio, puntos, type Receta } from "./tipos";
 
-const PapelVintage = GRUPOS.flatMap((g) => g.fondos).find((f) => f.id === 14)!.C;
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const X0 = ZONAS.izquierda;
 const ANCHO_UTIL = ZONAS.derecha - ZONAS.izquierda; // 900
 
-/** Cabecera: おやつタイム + Oyatsu Time + chip con la receta. */
+/** Logo pixel art (public/logo/oyatsu-time.png, 292×99) escalado sin suavizar. */
+export const LogoPixel: React.FC<{ escala: number; style?: React.CSSProperties }> = ({ escala, style }) => (
+  <Img src={staticFile("logo/oyatsu-time.png")} style={{ width: 292 * escala, height: 99 * escala, imageRendering: "pixelated", ...style }} />
+);
+
+/** Cabecera: logo おやつタイム + etiqueta de la receta al lado. */
 const Cabecera: React.FC<{ r: Receta }> = ({ r }) => (
-  <div style={{ position: "absolute", left: X0, width: ANCHO_UTIL, top: ZONAS.marca.y0, height: ZONAS.marca.y1 - ZONAS.marca.y0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-    <Logo tam={104} romaji={40} />
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 12, padding: "4px 22px", borderRadius: 30, backgroundColor: P.ui, border: borde(P, 5) }}>
-      <Sprite n={r.sprite} tam={38} />
-      <div style={{ fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 32, ...texto(P, "#FFFFFF", 7) }}>
-        Nº {r.numero} · {r.nombre}
+  <div style={{ position: "absolute", left: X0 - 10, width: ANCHO_UTIL + 20, top: ZONAS.marca.y0, height: ZONAS.marca.y1 - ZONAS.marca.y0, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <LogoPixel escala={2} />
+    <div style={{ width: 280, padding: "12px 16px", borderRadius: 26, backgroundColor: P.panel, border: borde(P, 5), boxShadow: `0 7px 0 ${P.contorno}`, textAlign: "center", transform: "rotate(3deg)" }}>
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "2px 16px", borderRadius: 20, backgroundColor: P.ui, border: borde(P, 4), fontFamily: FUENTES.pixel, fontWeight: 700, fontSize: 30, ...texto(P, "#FFFFFF", 6) }}>
+        <Sprite n={r.sprite} tam={30} />
+        Nº {r.numero}
       </div>
+      <div style={{ marginTop: 8, fontFamily: FUENTES.redonda, fontSize: 34, lineHeight: 1.05, color: P.uiOscuro }}>{r.nombre}</div>
     </div>
   </div>
 );
@@ -170,15 +174,11 @@ const Sonidos: React.FC<{ r: Receta }> = ({ r }) => {
 };
 
 /** Video vertical completo: fondo, cabecera, ventana del juego, consejo, progreso y sonido. */
-export const MarcoTikTok: React.FC<{ r: Receta; ventana: React.ReactNode; zonaSegura?: boolean }> = ({ r, ventana, zonaSegura = false }) => {
+export const MarcoTikTok: React.FC<{ r: Receta; ventana: React.ReactNode; zonaSegura?: boolean; fondo?: ColorFondo }> = ({ r, ventana, zonaSegura = false, fondo = "menta" }) => {
   const { x, y, escala } = ZONAS.ventana;
   return (
     <AbsoluteFill>
-      <PapelVintage />
-      <Lazo x={110} y={1600} tam={160} rot={-18} color={P.ui} />
-      <Lazo x={760} y={1640} tam={140} rot={14} color={P.ui} />
-      <Destello x={1000} y={300} tam={44} fase={2} color={P.acento} />
-      <Destello x={40} y={1500} tam={36} />
+      <Fondo color={fondo} />
       <Cabecera r={r} />
       <div style={{ position: "absolute", left: x - 14, top: y - 14, width: ANCHO * escala + 28, height: ALTO * escala + 28, borderRadius: 38, backgroundColor: "#FFFFFF", border: borde(P, 6), boxShadow: `0 12px 0 ${P.contorno}` }} />
       <div style={{ position: "absolute", left: x, top: y, width: ANCHO, height: ALTO, transform: `scale(${escala})`, transformOrigin: "0 0", borderRadius: 28 / escala, overflow: "hidden" }}>{ventana}</div>

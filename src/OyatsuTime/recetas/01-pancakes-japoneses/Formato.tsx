@@ -1,6 +1,7 @@
 // Receta nº 1 · Pancakes japoneses, montada sobre la base común de おやつタイム.
 import React from "react";
 import { Composition, Folder } from "remotion";
+import type { ColorFondo } from "../../Fondo";
 import { MarcoTikTok } from "../../Marco";
 import type { Aparicion } from "../../Nube";
 import { P } from "../../tema";
@@ -40,7 +41,9 @@ const Ventana: React.FC = () => (
   <VentanaJuego r={RECETA} gancho={<Gancho p={P} />} cocina={<Cocina2 p={P} />} carga={(que, frame) => <Utensilio p={P} que={que} frame={frame} />} />
 );
 
-export const PancakesTikTok: React.FC<{ zonaSegura: boolean }> = ({ zonaSegura }) => <MarcoTikTok r={RECETA} ventana={<Ventana />} zonaSegura={zonaSegura} />;
+export const PancakesTikTok: React.FC<{ zonaSegura: boolean; fondo?: ColorFondo }> = ({ zonaSegura, fondo }) => (
+  <MarcoTikTok r={RECETA} ventana={<Ventana />} zonaSegura={zonaSegura} fondo={fondo} />
+);
 
 export const PancakesTikTokComposition: React.FC = () => (
   <Folder name="OyatsuTime-01">

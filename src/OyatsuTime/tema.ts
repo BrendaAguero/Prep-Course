@@ -25,7 +25,7 @@ export const ALTO = 900;
 export const ZONAS = {
   izquierda: 60,
   derecha: 960, // a partir de aquí, botones de TikTok
-  marca: { y0: 150, y1: 330 },
+  marca: { y0: 120, y1: 330 }, // logo pixel ×2 (198 px de alto) + etiqueta de la receta
   ventana: { x: 60, y: 360, escala: 0.75 }, // 900×675 → hasta y 1035
   consejo: { y0: 1060, y1: 1290 },
   progreso: { y0: 1300, y1: 1460 },
