@@ -1,12 +1,10 @@
-// Guion de "Pancakes japoneses" (receta original de Just One Cookbook) para TikTok.
-// Un pequeño constructor genera, paso a paso, el recorrido del cursor, los clics, lo que lleva
-// en la mano, los sonidos y los momentos clave (eventos) que usan las animaciones.
-// Coordenadas: ventana de juego lógica de 1200×900. 30 fps.
+// Guion de "Pancakes japoneses" (receta original de Just One Cookbook) · Receta nº 1 de おやつタイム.
+// Usa el constructor común (src/OyatsuTime/guion.ts). Ventana lógica 1200×900, 30 fps.
+import { Guion } from "../../guion";
+import { huecoDespensa } from "../../posiciones";
+import type { Ingrediente, PasoReceta } from "../../tipos";
 
-export type Sonido = { f: number; a: string; vol?: number; dur?: number };
-export type Paso = { titulo: string; truco: string; items: [string, string][] };
-
-export const INGREDIENTES: { s: string; cant: string; nombre: string }[] = [
+export const INGREDIENTES: Ingrediente[] = [
   { s: "huevo", cant: "2", nombre: "huevos grandes" },
   { s: "leche", cant: "1½ cda", nombre: "leche entera" },
   { s: "vainilla", cant: "¼ cdta", nombre: "vainilla" },
@@ -17,7 +15,7 @@ export const INGREDIENTES: { s: string; cant: string; nombre: string }[] = [
   { s: "agua", cant: "2 cdas", nombre: "agua (vapor)" },
 ];
 
-export const PASOS: Paso[] = [
+export const PASOS: PasoReceta[] = [
   { titulo: "Separa los huevos", truco: "Ni una gota de yema en las claras, o no montan. ¡Claras 15 min al congelador!", items: [["huevo", "Huevo"]] },
   { titulo: "Yemas + leche + vainilla", truco: "Bate a mano hasta que la mezcla quede pálida y espumosa.", items: [["leche", "Leche"], ["vainilla", "Vainilla"]] },
   { titulo: "Tamiza la harina", truco: "Harina y polvo de hornear tamizados. Mezcla solo hasta que esté lisa.", items: [["harina", "Harina"], ["polvo", "Polvo de hornear"]] },
@@ -35,128 +33,17 @@ export const CLARAS = { x: 700, y: 740, k: 0.84 };
 export const SARTEN = { x: 470, y: 720 };
 export const PLATO = { x: 470, y: 760 };
 export const PANCAKES_X = [340, 470, 600];
-export const BOTON_JUGAR = { x: 780, y: 488 };
-export const BOTON_COCINAR = { x: 600, y: 840 };
-export const tarjeta = (i: number) => ({ x: i % 2 === 0 ? 330 : 870, y: 250 + Math.floor(i / 2) * 140 });
-
-/** Centro del hueco i de la despensa con n ingredientes (igual que el componente Despensa). */
-export const hueco = (i: number, n: number) => {
-  const paso = (640 - 50) / n;
-  return { x: 1025, y: 190 + i * paso + (paso - 26) / 2 };
-};
-
-/** Ritmo global: <1 acelera todo el guion (movimientos, esperas y sonidos largos). */
-const TEMPO = 1.0;
-const r = (d: number) => Math.max(1, Math.round(d * TEMPO));
-
-class Guion {
-  f = 0;
-  x = 1100;
-  y = 1000;
-  cursor: [number, number, number][] = [[0, 1100, 1000]];
-  clics: number[] = [];
-  cargas: [number, number, string][] = [];
-  sonidos: Sonido[] = [];
-  ev: Record<string, number> = {};
-  private enMano: { desde: number; que: string } | null = null;
-
-  ir(x: number, y: number, d = 16) {
-    this.f += r(d);
-    this.cursor.push([this.f, x, y]);
-    this.x = x;
-    this.y = y;
-    return this;
-  }
-  quieto(d: number) {
-    this.f += r(d);
-    this.cursor.push([this.f, this.x, this.y]);
-    return this;
-  }
-  son(a: string, extra: Omit<Sonido, "f" | "a"> = {}) {
-    this.sonidos.push({ f: this.f, a, ...extra, dur: extra.dur ? r(extra.dur) : undefined });
-    return this;
-  }
-  clic(sonido?: string, vol?: number) {
-    this.clics.push(this.f);
-    if (sonido) this.son(sonido, { vol });
-    return this.quieto(6);
-  }
-  marca(n: string) {
-    this.ev[n] = this.f;
-    return this;
-  }
-  coger(que: string) {
-    this.soltar();
-    this.enMano = { desde: this.f, que };
-    return this;
-  }
-  soltar() {
-    if (this.enMano) this.cargas.push([this.enMano.desde, this.f, this.enMano.que]);
-    this.enMano = null;
-    return this;
-  }
-  /** Movimiento circular (batir, limpiar) alrededor de (cx, cy). */
-  girar(cx: number, cy: number, rx: number, ry: number, dur: number, vueltas: number) {
-    const d = r(dur);
-    const pasos = Math.max(4, Math.round(d / 3));
-    for (let i = 1; i <= pasos; i++) {
-      const a = (i / pasos) * Math.PI * 2 * vueltas;
-      this.f += d / pasos;
-      this.f = Math.round(this.f * 1000) / 1000;
-      this.cursor.push([this.f, cx + Math.cos(a) * rx, cy + Math.sin(a) * ry]);
-    }
-    this.x = cx + rx;
-    this.y = cy;
-    this.f = Math.round(this.f);
-    return this;
-  }
-  /** Sacudir arriba y abajo (tamiz, salero). */
-  sacudir(dur: number, amp = 14) {
-    const d = r(dur);
-    const cx = this.x;
-    const cy = this.y;
-    for (let i = 1; i <= Math.round(d / 4); i++) {
-      this.f += 4;
-      this.cursor.push([this.f, cx + (i % 2 ? 6 : -6), cy + (i % 2 ? amp : -amp / 2)]);
-    }
-    this.cursor.push([this.f, cx, cy]);
-    return this;
-  }
-  coger_de_despensa(i: number, n: number, que: string) {
-    const h = hueco(i, n);
-    this.ir(h.x, h.y, 18).clic("toc", 0.6).coger(que);
-    return this;
-  }
-}
 
 const g = new Guion();
 
-// --- Gancho (pancakes temblando) y menú
-g.marca("gancho").quieto(75).marca("menu");
-g.ir(900, 700, 20).ir(BOTON_JUGAR.x + 20, BOTON_JUGAR.y + 10, 18).quieto(6).marca("clicJugar").clic().quieto(14);
-g.marca("cortina1").quieto(16);
+// --- Gancho, menú e inventario (comunes)
+g.intro();
+g.inventario(INGREDIENTES.length);
 
-// --- Ingredientes
-g.marca("ingredientes").ir(tarjeta(0).x, tarjeta(0).y, 22);
-INGREDIENTES.forEach((_, i) => {
-  if (i > 0) g.ir(tarjeta(i).x, tarjeta(i).y, 13);
-  g.marca(`ing${i}`).clic("check");
-});
-g.ir(BOTON_COCINAR.x, BOTON_COCINAR.y, 18).quieto(6).marca("clicCocinar").clic().quieto(12).marca("cortina2");
-
-// Cada paso dura al menos lo que se tarda en leer su truco (≈2,5 palabras/s) + 1,5 s,
-// y termina con una pausa para ver el resultado.
-const PAUSA_RESULTADO = 30;
-const minimo = (i: number) => Math.round((PASOS[i].truco.split(/\s+/).length / 2.5 + 1.5) * 30);
-const finPaso = (i: number) => {
-  g.quieto(0);
-  const hecho = g.f - g.ev[`paso${i}`];
-  g.f += Math.max(0, minimo(i) - hecho - PAUSA_RESULTADO) + PAUSA_RESULTADO;
-  g.cursor.push([g.f, g.x, g.y]);
-};
+const finPaso = (i: number) => g.finPaso(i, PASOS[i].truco);
 
 // --- Paso 1: separar huevos (se muestra uno, con "×2")
-g.marca("paso0").quieto(26); // el paso 1 empieza al cerrarse la cortina (sin hueco entre pantallas)
+g.quieto(26);
 g.coger_de_despensa(0, 1, "huevo").ir(YEMAS.x, 560, 22).quieto(6).son("toc-huevo").quieto(10).marca("huevo1").clic("crack-suave").soltar().quieto(24);
 g.ir(CLARAS.x + 130, 470, 20).marca("congelar").son("tictac", { dur: 50 }).quieto(50);
 finPaso(0);
@@ -170,7 +57,7 @@ finPaso(1);
 
 // --- Paso 3: tamizar (harina y polvo de hornear juntos)
 g.marca("paso2").quieto(6);
-g.coger_de_despensa(0, 2, "tamiz").ir(hueco(1, 2).x, hueco(1, 2).y, 18).clic("toc", 0.6);
+g.coger_de_despensa(0, 2, "tamiz").ir(huecoDespensa(1, 2).x, huecoDespensa(1, 2).y, 18).clic("toc", 0.6);
 g.ir(YEMAS.x, 500, 22).marca("tamiz1").son("tamizar", { dur: 44 }).sacudir(44).marca("tamizFin").soltar();
 g.coger("varillas").ir(YEMAS.x + 70, 545, 16).marca("mezclaY").son("batir", { dur: 36 }).girar(YEMAS.x, 545, 60, 14, 36, 2).marca("mezclaYfin").soltar();
 finPaso(2);
@@ -228,18 +115,11 @@ g.coger_de_despensa(0, 3, "fresa").ir(PLATO.x, 470, 18).marca("fresa0").clic("pl
 g.coger_de_despensa(1, 3, "azucar").ir(PLATO.x, 430, 18).marca("glas").son("espolvorear").sacudir(24, 10).soltar();
 g.coger_de_despensa(2, 3, "miel").ir(PLATO.x - 90, 420, 18).marca("sirope").son("gorgoteo", { dur: 44 });
 g.ir(PLATO.x + 80, 430, 44).marca("siropeFin").soltar().ir(1100, 980, 20);
-g.marca("jiggle2").son("boing-esponjoso").quieto(22).son("boing-esponjoso", { vol: 0.6 }).quieto(24);
+g.marca("jiggle2").son("boing-esponjoso").quieto(16);
+finPaso(8);
 
-// --- Final
-g.marca("completada").son("tintineo").quieto(60).marca("cta").quieto(55).marca("fin");
+// --- Final (común): receta nueva → ♡ Guardar → libro
+g.final();
 
-export const G = {
-  cursor: g.cursor,
-  clics: g.clics,
-  cargas: g.cargas,
-  sonidos: g.sonidos,
-  ev: g.ev,
-  duracion: g.f,
-};
-
+export const G = g.hecho();
 export const PASO_INICIO = PASOS.map((_, i) => G.ev[`paso${i}`]);

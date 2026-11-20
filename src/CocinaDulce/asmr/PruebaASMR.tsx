@@ -268,7 +268,7 @@ const Final: React.FC = () => {
   return (
     <div style={{ position: "absolute", right: 70, bottom: 70, opacity: o, textAlign: "right" }}>
       <div style={{ fontFamily: C.redonda, fontSize: 56, color: P.texto }}>Pancakes japoneses</div>
-      <div style={{ fontFamily: C.pixel, fontWeight: 700, fontSize: 30, color: P.uiOscuro }}>Fuwa Fuwa Kitchen ♡</div>
+      <div style={{ fontFamily: C.pixel, fontWeight: 700, fontSize: 30, color: P.uiOscuro }}>Oyatsu Time ♡</div>
     </div>
   );
 };

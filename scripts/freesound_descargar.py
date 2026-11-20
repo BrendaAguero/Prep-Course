@@ -104,7 +104,7 @@ def permitida(lic: str | None, licencias: list[str]) -> bool:
 
 
 NOMBRE_LICENCIA = {"cc0": "CC0 1.0", "by4": "CC BY 4.0", "by3": "CC BY 3.0"}
-USER_AGENT = "FuwaFuwaKitchen-SoundBank/1.0 (+https://freesound.org/docs/api/)"
+USER_AGENT = "OyatsuTime-SoundBank/1.0 (+https://freesound.org/docs/api/)"
 TAM_MINIMO = 2048  # bytes; menos que esto no es un audio útil
 
 

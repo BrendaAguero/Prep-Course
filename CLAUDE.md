@@ -68,21 +68,30 @@ npx remotion render AprendeAContar out/aprende-a-contar.mp4
 - Receta de referencia con el diseño final: `src/CocinaDulce/pancakes/` (pancakes japoneses,
   composiciones `CocinaDulce-pancakes-vertical` / `-horizontal`). La coreografía (cursor, clics,
   tiempos) está en `pancakes/tiempos.ts`; los objetos (bol, sartén, plato, pancake) en `pancakes/Objetos.tsx`.
-- **TikTok (receta completa, vertical):** `src/CocinaDulce/tiktok/` → composición
-  `TikTok-pancakes-japoneses` (~90 s). Sigue la receta original paso a paso (antes: ficha investigada
-  y aprobada). Estructura: gancho 2 s (resultado final) → menú → ingredientes con cantidades (el cursor
-  los marca) → 9 pasos con cinta "PASO n/9" y despensa con los ingredientes de cada paso → "¡Receta
-  completada!" + "Guarda la receta". Fuera de la ventana: cabecera "Fuwa Fuwa Kitchen", fondo Papel
-  vintage (fondo nº 14) y panel inferior con el paso y un truco de Nube. Sonidos de juego suaves + música
-  baja (≈0,3). Ritmo: cada paso dura al menos lo que se tarda en leer su truco + 1,5 s y acaba con una pausa de resultado; las acciones repetidas se resumen ("×2", "1/3…"). La coreografía se escribe con el constructor de `tiktok/guion.ts` (ir, clic, coger,
-  girar, sacudir, marca, son; `TEMPO` global): las animaciones leen los eventos (`G.ev`).
+- **Canal y juego: おやつタイム (Oyatsu Time)** — japonés grande, romanizado pequeño al costado.
+  Guía de estilo y personaje: `recetas/ESTILO.md` (leerla antes de cada receta). Índice y fichas de
+  recetas en `recetas/`; recetas ya subidas en `recetas/publicadas.md`.
+- **Base común `src/OyatsuTime/`:** `tema.ts` (paleta A, fuentes, zonas seguras), `guion.ts`
+  (constructor `Guion`: ir, clic, coger, girar, sacudir, marca, son + tramos comunes `intro()`,
+  `inventario(n)`, `finPaso(i, truco)`, `final()`), `Nube.tsx` (apariciones asomada/probando/batiendo/
+  celebra + bocadillo), `Pantallas.tsx` (menú, inventario con cantidades y "📸 ¡Saca captura!",
+  "¡Has conseguido una receta nueva!" con "♡ Guardar" → "¡Guardada!", libro de recetas),
+  `Interfaz.tsx` (cinta, +100 puntos, barra "Esponjoso", cortina, cursor), `Ventana.tsx`, `Marco.tsx`
+  (vertical 1080×1920 en zona segura de TikTok: ventana a escala 0,75 en x 60–960, panel de consejo
+  con Nube o 📝 según si Nube está en la ventana, progreso Paso n/N + puntos).
+- Cada receta: `src/OyatsuTime/recetas/NN-<id>/` con `guion.ts` (ingredientes, pasos, coreografía),
+  `Escena.tsx` (cocina y objetos propios) y `Formato.tsx` (objeto `Receta` + apariciones de Nube).
+  Composiciones `OyatsuTime-NN-<id>` y `-zona-segura` (revisar esta antes de publicar).
+  Receta nº 1: `01-pancakes-japoneses` (~95 s).
 - Sprites pixelados: `scripts/generar_sprites.py` (emoji → pixel art con contorno) → `public/sprites/`.
 - Sonidos: `scripts/generar_sfx_kawaii.py` → `public/audio/kawaii/`; sonidos de cocina estilo juego
   (batir, plop, chisporroteo tierno, fwip, toc, tac de plato, boing esponjoso, gorgoteo, tintineo):
   `scripts/generar_sfx_cocina_juego.py` → `public/audio/cocina-juego/`. Prueba: `Prueba-juego-pancakes`
   (sonidos de juego + música baja) frente a `Prueba-ASMR-pancakes` (sonidos reales del banco).
 
-## Banco de sonidos ASMR (`sonidos-asmr/`)
+## Banco de sonidos ASMR (`sonidos-asmr/`) — archivado
+
+- **Por ahora no se usa:** los videos de Oyatsu Time llevan solo sonidos de juego propios.
 
 - Banco **general** de sonidos de cocina reales CC0, organizado por acción, para cualquier receta
   (ver `sonidos-asmr/README.md`). Se usa en las versiones ASMR (YouTube) y se mezcla con los

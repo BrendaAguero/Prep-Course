@@ -1,4 +1,4 @@
-#@title 🍓 Fuwa Fuwa Kitchen · Banco de sonidos ASMR (CC0) { display-mode: "form" }
+#@title 🍓 Oyatsu Time · Banco de sonidos ASMR (CC0) { display-mode: "form" }
 #@markdown ### 1. Tu clave de Freesound
 #@markdown Pega aquí tu *Client secret / API key* (freesound.org/apiv2/apply). Recomendada en todos los modos;
 #@markdown sin clave solo funciona "Búsqueda" y "Banco general" (vía Openverse, con menos resultados).
@@ -46,7 +46,7 @@ import urllib.parse
 import urllib.request
 import urllib.error
 
-USER_AGENT = "FuwaFuwaKitchen-SoundBank/1.0 (Google Colab; descarga de sonidos CC0)"
+USER_AGENT = "OyatsuTime-SoundBank/1.0 (Google Colab; descarga de sonidos CC0)"
 CC0 = "publicdomain/zero/1.0"
 CARPETA = "sonidos-asmr"
 # Catálogo del banco: categoría → acción → búsquedas en inglés (de más a menos precisa).
@@ -295,7 +295,7 @@ def tareas():
 
 
 # ------------------------------------------------------------------------------------
-print("🍓 Fuwa Fuwa Kitchen · banco de sonidos ASMR\n")
+print("🍓 Oyatsu Time · banco de sonidos ASMR\n")
 print("Fuente:", "API de Freesound (con clave)" if TOKEN_FREESOUND.strip() else "Openverse (sin clave)")
 print("Modo:", MODO, "\n")
 shutil.rmtree(CARPETA, ignore_errors=True)
@@ -324,7 +324,7 @@ for accion, dato in trabajo:
 # Créditos y registro de licencias
 hoy = datetime.date.today().isoformat()
 with open(os.path.join(CARPETA, "CREDITOS.txt"), "w", encoding="utf-8") as f:
-    f.write("Fuwa Fuwa Kitchen · Banco de sonidos ASMR\n")
+    f.write("Oyatsu Time · Banco de sonidos ASMR\n")
     f.write(f"Descargado el {hoy}. Todos los sonidos tienen licencia CC0 1.0 (dominio público).\n")
     f.write("https://creativecommons.org/publicdomain/zero/1.0/\n\n")
     for d in informe["descargados"]:

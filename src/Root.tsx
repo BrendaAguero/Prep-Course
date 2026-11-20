@@ -9,7 +9,7 @@ import { LaminasCompositions } from "./CocinaDulce/disenos/Laminas";
 import { PancakesCompositions } from "./CocinaDulce/pancakes/Formatos";
 import { LaminasFondosCompositions } from "./CocinaDulce/pancakes/LaminasFondos";
 import { PruebaASMRComposition } from "./CocinaDulce/asmr/PruebaASMR";
-import { PancakesTikTokComposition } from "./CocinaDulce/tiktok/Formato";
+import { PancakesTikTokComposition } from "./OyatsuTime/recetas/01-pancakes-japoneses/Formato";
 
 // Each <Composition> is an entry in the sidebar!
 

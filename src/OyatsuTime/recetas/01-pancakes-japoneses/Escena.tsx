@@ -1,15 +1,14 @@
 import React from "react";
+import { ALTO, ANCHO } from "../../tema";
 import { AbsoluteFill, Easing, interpolate, interpolateColors, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { Cursor, Destello, Encaje, Sprite, Vichy } from "../Deco";
-import { Escribir } from "../Juego";
-import { C } from "../tema";
-import { BotonP, borde, Cocina, Despensa, texto } from "../disenos/Escenas";
-import type { Paleta } from "../disenos/paletas";
-import { Batidor, Bol, Lienzo, MediaFresa, Pancake, Plato, Sarten } from "../pancakes/Objetos";
-import { BOTON_COCINAR, BOTON_JUGAR, CLARAS, G, hueco, INGREDIENTES, PANCAKES_X, PASO_INICIO, PASOS, PLATO, SARTEN, tarjeta, YEMAS } from "./guion";
+import { Destello, Sprite } from "../../../CocinaDulce/Deco";
+import { C } from "../../../CocinaDulce/tema";
+import { borde, Cocina, texto } from "../../../CocinaDulce/disenos/Escenas";
+import type { Paleta } from "../../../CocinaDulce/disenos/paletas";
+import { Batidor, Bol, Lienzo, MediaFresa, Pancake, Plato, Sarten } from "../../../CocinaDulce/pancakes/Objetos";
+import { posicionCursor } from "../../Interfaz";
+import { CLARAS, G, PANCAKES_X, PLATO, SARTEN, YEMAS } from "./guion";
 
-export const ANCHO = 1200;
-export const ALTO = 900;
 const E = G.ev;
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 const prog = (f: number, a: number, b: number, easing?: (t: number) => number) => interpolate(f, [a, b], [0, 1], { ...clamp, easing });
@@ -17,26 +16,8 @@ const DORADO = "#E2A253";
 const LADO = "#F8DDAA";
 const CRUDO = "#FFF1D6";
 
-export const posicionCursor = (frame: number) => {
-  const c = G.cursor;
-  let i = 0;
-  while (i < c.length - 2 && frame > c[i + 1][0]) i++;
-  const [f0, x0, y0] = c[i];
-  const [f1, x1, y1] = c[i + 1];
-  const t = interpolate(frame, [f0, Math.max(f0 + 0.001, f1)], [0, 1], { ...clamp, easing: Easing.inOut(Easing.quad) });
-  return { x: x0 + (x1 - x0) * t, y: y0 + (y1 - y0) * t };
-};
-
-export const pasoActual = (frame: number) => {
-  let p = -1;
-  PASO_INICIO.forEach((f, i) => {
-    if (frame >= f) p = i;
-  });
-  return frame >= E.completada ? -1 : p;
-};
-
 /* ---------- utensilios que lleva el cursor ---------- */
-const Utensilio: React.FC<{ p: Paleta; que: string; frame: number }> = ({ p, que, frame }) => {
+export const Utensilio: React.FC<{ p: Paleta; que: string; frame: number }> = ({ p, que, frame }) => {
   switch (que) {
     case "varillas":
       // la mano sujeta el mango; las varillas bajan ~150 px hasta la mezcla
@@ -162,7 +143,7 @@ const Reloj: React.FC<{ p: Paleta; desde: number; hasta: number; min0: number; m
   );
 };
 
-const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
+export const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const sp = (f: number, damping = 10) => spring({ frame: frame - f, fps, config: { damping } });
@@ -217,7 +198,7 @@ const Cocina2: React.FC<{ p: Paleta }> = ({ p }) => {
   const baseP = PLATO.y + 30;
   const topeP = baseP - 3 * hPila;
 
-  const cursor = posicionCursor(frame);
+  const cursor = posicionCursor(G, frame);
 
   return (
     <AbsoluteFill>
@@ -478,13 +459,11 @@ const Remolino: React.FC<{ x: number; rimY: number; v1: number; v2: number; burb
 };
 
 /* ---------- pantallas ---------- */
-const Gancho: React.FC<{ p: Paleta }> = ({ p }) => {
-  const frame = useCurrentFrame();
-  const t = Math.sin(frame * 0.9) * Math.exp(-(frame % 30) / 10) * 0.12;
+/** Pila de pancakes con fresas y sirope sobre el plato (resultado final). */
+export const PlatoFinal: React.FC<{ p: Paleta; t?: number }> = ({ p, t = 0 }) => {
   const base = PLATO.y + 30;
   return (
-    <AbsoluteFill>
-      <Cocina p={p} />
+    <>
       <Plato p={p} x={PLATO.x} y={PLATO.y + 40} />
       <Lienzo>
         <g transform={`translate(${PLATO.x} ${base}) scale(${1 - t * 0.6} ${1 + t}) translate(${-PLATO.x} ${-base})`}>
@@ -496,219 +475,21 @@ const Gancho: React.FC<{ p: Paleta }> = ({ p }) => {
           <MediaFresa p={p} x={PLATO.x + 50} y={base - 186} rot={18} />
         </g>
       </Lienzo>
+    </>
+  );
+};
+
+export const Gancho: React.FC<{ p: Paleta }> = ({ p }) => {
+  const frame = useCurrentFrame();
+  const t = Math.sin(frame * 0.9) * Math.exp(-(frame % 30) / 10) * 0.12;
+  return (
+    <AbsoluteFill>
+      <Cocina p={p} />
+      <PlatoFinal p={p} t={t} />
       <div style={{ position: "absolute", top: 120, width: "100%", textAlign: "center", transform: "rotate(-3deg)" }}>
         <div style={{ fontFamily: C.redonda, fontSize: 96, ...texto(p, "#FFFFFF", 16) }}>¿Pancakes que</div>
         <div style={{ fontFamily: C.redonda, fontSize: 110, ...texto(p, p.ui, 16) }}>tiemblan? ☁️</div>
       </div>
-    </AbsoluteFill>
-  );
-};
-
-const Menu: React.FC<{ p: Paleta }> = ({ p }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const logo = spring({ frame: frame - E.menu, fps, config: { damping: 9 } });
-  return (
-    <AbsoluteFill>
-      <Cocina p={p} />
-      <AbsoluteFill style={{ backgroundColor: `${p.exterior}B3` }} />
-      <div style={{ position: "absolute", top: 50, width: "100%", textAlign: "center", transform: `scale(${logo}) rotate(-3deg)` }}>
-        <div style={{ fontFamily: C.redonda, fontSize: 150, lineHeight: 0.95, ...texto(p, "#FFFFFF", 22) }}>Cocina</div>
-        <div style={{ fontFamily: C.redonda, fontSize: 150, lineHeight: 0.95, ...texto(p, p.ui, 22) }}>Dulce ♡</div>
-      </div>
-      <div style={{ position: "absolute", left: 470, top: 380, width: 620, height: 440, borderRadius: 36, backgroundColor: p.panel, border: borde(p, 6), boxShadow: `0 12px 0 ${p.contorno}` }}>
-        <div style={{ position: "absolute", top: 30, width: "100%", textAlign: "center", fontFamily: C.pixel, fontWeight: 700, fontSize: 32, color: p.texto }}>Receta nº 2 · Pancakes japoneses</div>
-      </div>
-      <BotonP p={p} x={BOTON_JUGAR.x} y={BOTON_JUGAR.y} w={460} texto="Jugar" icono="▶" tam={52} presionado={frame >= E.clicJugar && frame < E.clicJugar + 6} />
-      <BotonP p={p} x={780} y={608} w={460} texto="Libro de recetas" color={p.acento} tam={40} />
-      <BotonP p={p} x={780} y={728} w={460} texto="Opciones" color={p.maderaOscura} tam={40} />
-    </AbsoluteFill>
-  );
-};
-
-const Ingredientes: React.FC<{ p: Paleta }> = ({ p }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  return (
-    <AbsoluteFill>
-      <Vichy tam={50} color={`${p.ui}22`} fondo={p.panel} />
-      <div style={{ position: "absolute", top: 40, width: "100%", textAlign: "center", fontFamily: C.redonda, fontSize: 72, ...texto(p, p.ui, 12) }}>Ingredientes</div>
-      <div style={{ position: "absolute", top: 130, width: "100%", textAlign: "center", fontFamily: C.pixel, fontWeight: 700, fontSize: 30, color: p.texto }}>Para 3 pancakes · 45 min</div>
-      {INGREDIENTES.map((ing, i) => {
-        const t = tarjeta(i);
-        const ok = frame >= E[`ing${i}`];
-        const s = ok ? spring({ frame: frame - E[`ing${i}`], fps, config: { damping: 8 } }) : 0;
-        const entra = spring({ frame: frame - E.ingredientes - i * 3, fps, config: { damping: 12 } });
-        return (
-          <div
-            key={ing.s}
-            style={{
-              position: "absolute",
-              left: t.x - 240,
-              top: t.y - 60,
-              width: 480,
-              height: 120,
-              borderRadius: 26,
-              backgroundColor: ok ? "#FFF6D6" : "#FFFFFF",
-              border: borde(p, 5),
-              boxShadow: ok ? `0 0 0 6px ${p.acento}` : `0 6px 0 ${p.contorno}`,
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              padding: "0 20px",
-              transform: `scale(${entra * (1 + 0.06 * s * (1 - s))})`,
-            }}
-          >
-            <Sprite n={ing.s} tam={84} />
-            <div>
-              <div style={{ fontFamily: C.redonda, fontSize: 40, color: p.uiOscuro, lineHeight: 1 }}>{ing.cant}</div>
-              <div style={{ fontFamily: C.pixel, fontWeight: 700, fontSize: 28, color: p.texto }}>{ing.nombre}</div>
-            </div>
-            <div
-              style={{
-                marginLeft: "auto",
-                width: 52,
-                height: 52,
-                borderRadius: 14,
-                border: borde(p, 5),
-                backgroundColor: ok ? p.ui : "#FFFFFF",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 36,
-                color: "#FFFFFF",
-                transform: `scale(${ok ? s : 1})`,
-              }}
-            >
-              {ok ? "✓" : ""}
-            </div>
-          </div>
-        );
-      })}
-      <div style={{ position: "absolute", top: 760, width: "100%", textAlign: "center", fontFamily: C.pixel, fontWeight: 700, fontSize: 26, color: p.texto }}>
-        Utensilios: 2 boles · varillas · batidora · tamiz · sartén con tapa
-      </div>
-      <BotonP p={p} x={BOTON_COCINAR.x} y={BOTON_COCINAR.y} w={420} texto="¡A cocinar!" icono="▶" tam={44} presionado={frame >= E.clicCocinar && frame < E.clicCocinar + 6} />
-    </AbsoluteFill>
-  );
-};
-
-const Completada: React.FC<{ p: Paleta }> = ({ p }) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const s = spring({ frame: frame - E.completada, fps, config: { damping: 10 } });
-  const cta = spring({ frame: frame - E.cta, fps, config: { damping: 12 } });
-  return (
-    <AbsoluteFill>
-      <Vichy tam={46} color={`${p.ui}22`} fondo={p.exterior} />
-      <div style={{ position: "absolute", inset: 0, transform: `scale(${s})` }}>
-        <Encaje x={170} y={90} w={860} h={560} color={p.ui} fondo={<Vichy tam={46} color={`${p.ui}22`} fondo={p.panel} />}>
-          <div style={{ position: "absolute", top: 40, width: "100%", textAlign: "center", fontFamily: C.pixel, fontWeight: 700, fontSize: 64, lineHeight: 1.1, ...texto(p, p.acento, 12) }}>
-            ¡Receta
-            <br />
-            completada!
-          </div>
-          <div style={{ position: "absolute", top: 240, width: "100%", display: "flex", justifyContent: "center", gap: 20 }}>
-            {[0, 1, 2].map((i) => (
-              <Sprite key={i} n="estrella" tam={i === 1 ? 130 : 100} style={{ transform: `scale(${spring({ frame: frame - E.completada - 10 - i * 8, fps, config: { damping: 7 } })})` }} />
-            ))}
-          </div>
-          <div style={{ position: "absolute", top: 420, width: "100%", textAlign: "center", fontFamily: C.redonda, fontSize: 60, ...texto(p, p.ui, 11) }}>Pancakes japoneses</div>
-        </Encaje>
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          left: 200,
-          right: 200,
-          top: 720,
-          opacity: cta,
-          transform: `translateY(${(1 - cta) * 60}px)`,
-          textAlign: "center",
-          padding: "18px 0",
-          borderRadius: 30,
-          backgroundColor: p.ui,
-          border: borde(p, 6),
-          fontFamily: C.pixel,
-          fontWeight: 700,
-          fontSize: 44,
-          ...texto(p, "#FFFFFF", 8),
-        }}
-      >
-        💾 Guarda la receta
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-const Cortina: React.FC<{ p: Paleta; centro: number; id: string }> = ({ p, centro, id }) => {
-  const frame = useCurrentFrame();
-  if (frame < centro - 16 || frame > centro + 16) return null;
-  const e =
-    frame <= centro
-      ? interpolate(frame, [centro - 16, centro], [1.2, 0], { ...clamp, easing: Easing.in(Easing.quad) })
-      : interpolate(frame, [centro, centro + 16], [0, 1.2], { ...clamp, easing: Easing.out(Easing.quad) });
-  return (
-    <svg width={ANCHO} height={ALTO} style={{ position: "absolute", inset: 0 }}>
-      <defs>
-        <mask id={`m-${id}`}>
-          <rect width={ANCHO} height={ALTO} fill="#fff" />
-          <path d="M0 30 C -60 -10, -40 -60, 0 -30 C 40 -60, 60 -10, 0 30 Z" transform={`translate(600 470) scale(${e * 14})`} fill="#000" />
-        </mask>
-      </defs>
-      <rect width={ANCHO} height={ALTO} fill={p.ui} mask={`url(#m-${id})`} />
-    </svg>
-  );
-};
-
-/** Ventana completa del juego (1200×900): pantallas, despensa, cinta, cursor. */
-export const VentanaTikTok: React.FC<{ p: Paleta }> = ({ p }) => {
-  const frame = useCurrentFrame();
-  const cursor = posicionCursor(frame);
-  const carga = G.cargas.find(([a, b]) => frame >= a && frame < b);
-  const paso = pasoActual(frame);
-  const enCocina = frame >= E.cortina2 && frame < E.completada;
-  const items = paso >= 0 ? PASOS[paso].items : [];
-  const resaltado = carga ? undefined : items.findIndex((_, i) => Math.hypot(cursor.x - hueco(i, items.length).x, cursor.y - hueco(i, items.length).y) < 55);
-  const ultimoClic = G.clics.filter((c) => c <= frame).pop();
-  const presionado = (ultimoClic !== undefined && frame - ultimoClic < 6) || Boolean(carga);
-  const mostrarCursor = frame >= E.menu && frame < E.completada + 10;
-
-  return (
-    <AbsoluteFill style={{ overflow: "hidden", backgroundColor: p.pared }}>
-      {frame < E.menu && <Gancho p={p} />}
-      {frame >= E.menu && frame < E.cortina1 && <Menu p={p} />}
-      {frame >= E.cortina1 && frame < E.cortina2 && <Ingredientes p={p} />}
-      {enCocina && <Cocina2 p={p} />}
-      {frame >= E.completada && <Completada p={p} />}
-
-      {enCocina && items.length > 0 && <Despensa p={p} items={items} resaltado={resaltado !== undefined && resaltado >= 0 ? resaltado : undefined} enMano={carga?.[2]} />}
-
-      {enCocina && paso >= 0 && (
-        <div style={{ position: "absolute", left: 40, right: 40, top: 40, height: 92, borderRadius: 24, backgroundColor: p.ui, border: borde(p, 5), boxShadow: `0 8px 0 ${p.contorno}`, display: "flex", alignItems: "center", gap: 22, padding: "0 28px" }}>
-          <div style={{ position: "absolute", inset: 8, borderRadius: 16, border: "3px dashed #FFFFFFAA" }} />
-          <div style={{ fontFamily: C.pixel, fontWeight: 700, fontSize: 38, ...texto(p, p.acento, 7) }}>PASO {paso + 1}/9</div>
-          <div style={{ fontFamily: C.pixel, fontWeight: 700, fontSize: 42, ...texto(p, "#FFFFFF", 7) }}>
-            <Escribir key={paso} texto={PASOS[paso].titulo} desde={PASO_INICIO[paso]} vel={1} sonido={false} />
-          </div>
-        </div>
-      )}
-
-      {/* lo que lleva el cursor */}
-      {carga && mostrarCursor && (
-        <div style={{ position: "absolute", left: cursor.x, top: cursor.y }}>
-          <Utensilio p={p} que={carga[2]} frame={frame} />
-        </div>
-      )}
-      {G.clics.map((c) => {
-        const t = frame - c;
-        if (t < 0 || t > 12) return null;
-        const q = posicionCursor(c);
-        return <div key={c} style={{ position: "absolute", left: q.x - 10 - t * 5, top: q.y - 10 - t * 5, width: 20 + t * 10, height: 20 + t * 10, borderRadius: "50%", border: `6px solid ${p.ui}`, opacity: 1 - t / 12 }} />;
-      })}
-      {mostrarCursor && <Cursor x={cursor.x} y={cursor.y} presionado={presionado} />}
-      <Cortina p={p} centro={E.cortina1} id="c1" />
-      <Cortina p={p} centro={E.cortina2} id="c2" />
     </AbsoluteFill>
   );
 };
